@@ -8,11 +8,19 @@
 		startOfMonth,
 		todayIsoUtc
 	} from '$lib/analytics/date.js';
-	import { buildTimeSeriesOption } from '$lib/analytics/echarts.js';
-	import { formatMetricValue } from '$lib/analytics/format.js';
+	import { computeDelta } from '$lib/analytics/comparison.js';
+	import {
+		buildHorizontalBarOption,
+		buildStackedSplitOption,
+		buildTimeSeriesOption
+	} from '$lib/analytics/echarts.js';
+	import { formatDeltaPct, formatMetricValue } from '$lib/analytics/format.js';
+	import CardAssistant from '$lib/components/ai/CardAssistant.svelte';
 	import EChart from '$lib/components/charts/EChart.svelte';
 	import CardGrid from '$lib/components/ui/CardGrid.svelte';
+	import DataTable from '$lib/components/ui/DataTable.svelte';
 	import DashboardCard from '$lib/components/ui/DashboardCard.svelte';
+	import { dashboardContext } from '$lib/stores/dashboardContext.js';
 
 	const DEFAULT_END = addDays(todayIsoUtc(), -1);
 	const DEFAULT_START = addDays(DEFAULT_END, -27);
@@ -25,14 +33,38 @@
 	let granularity = $state('auto');
 	let preset = $state('last_28_days');
 
-	const cardMetrics = ['sessions', 'clicks', 'revenue', 'impressions', 'purchases'];
+	const cardMetrics = [
+		'sessions',
+		'engagedSessions',
+		'bounceRate',
+		'clicks',
+		'impressions',
+		'ctr',
+		'purchases',
+		'revenue'
+	];
 
 	let cards = $state(
 		Object.fromEntries(cardMetrics.map((m) => [m, { loading: false, error: '', data: null }]))
 	);
 
+	let brandSplit = $state({ loading: false, error: '', data: null });
+	let breakdowns = $state({
+		topPages: { loading: false, error: '', data: null },
+		topQueries: { loading: false, error: '', data: null },
+		referralSources: { loading: false, error: '', data: null }
+	});
+
 	function updateCard(metric, patch) {
 		cards = { ...cards, [metric]: { ...cards[metric], ...patch } };
+	}
+
+	function updateBrandSplit(patch) {
+		brandSplit = { ...brandSplit, ...patch };
+	}
+
+	function updateBreakdown(key, patch) {
+		breakdowns = { ...breakdowns, [key]: { ...breakdowns[key], ...patch } };
 	}
 
 	function setPreset(next) {
@@ -100,6 +132,175 @@
 		return json;
 	}
 
+	async function loadBrandSplit(metric, request, signal) {
+		const params = new URLSearchParams({
+			clientId: request.clientId,
+			metric,
+			start: request.start,
+			end: request.end,
+			compareMode: request.compareMode,
+			granularity: request.granularity
+		});
+
+		const res = await fetch(`/api/analytics/brand-split?${params.toString()}`, { signal });
+		const json = await res.json();
+		if (!res.ok) throw new Error(json?.error || 'Request failed');
+		return json;
+	}
+
+	async function loadBreakdown({ metric, dimension, limit }, request, signal) {
+		const params = new URLSearchParams({
+			clientId: request.clientId,
+			metric,
+			dimension,
+			limit: String(limit || 10),
+			start: request.start,
+			end: request.end,
+			compareMode: request.compareMode
+		});
+
+		const res = await fetch(`/api/analytics/breakdown?${params.toString()}`, { signal });
+		const json = await res.json();
+		if (!res.ok) throw new Error(json?.error || 'Request failed');
+		return json;
+	}
+
+	function formatShare(v) {
+		if (v == null || Number.isNaN(v)) return '—';
+		return new Intl.NumberFormat('en-GB', { style: 'percent', maximumFractionDigits: 1 }).format(v);
+	}
+
+	function mergeBreakdownRows(currentRows, compareRows) {
+		const compareByKey = new Map((compareRows || []).map((r) => [r.key, r]));
+		return (currentRows || []).map((r) => {
+			const c = compareByKey.get(r.key);
+			const { deltaAbs, deltaPct } =
+				c?.value != null ? computeDelta(r.value, c.value) : { deltaAbs: null, deltaPct: null };
+			return {
+				key: r.key,
+				value: r.value,
+				share: r.share,
+				compareValue: c?.value ?? null,
+				compareShare: c?.share ?? null,
+				deltaAbs,
+				deltaPct
+			};
+		});
+	}
+
+	function mergedRowsForBreakdown(data) {
+		if (!data) return [];
+		return mergeBreakdownRows(data.current?.rows || [], data.compare?.rows || []);
+	}
+
+	function trimPoints(points, max = 24) {
+		if (!Array.isArray(points)) return [];
+		if (points.length <= max) return points;
+		return points.slice(points.length - max);
+	}
+
+	function buildTimeSeriesContext(metric, data) {
+		if (!data) return null;
+		const meta = METRIC_META?.[metric] || {};
+		return {
+			version: 1,
+			kind: 'time_series',
+			metric,
+			metricLabel: meta.label || metric,
+			unit: meta.unit || 'number',
+			source: data.current?.source || null,
+			compareMode: data.compareMode || 'off',
+			range: data.current?.range || null,
+			compareRange: data.compareRange || null,
+			current: {
+				total: data.summary?.current ?? null,
+				granularity: data.current?.granularity || null,
+				points: trimPoints(data.current?.points || [])
+			},
+			compare: data.compare
+				? {
+						total: data.summary?.compare ?? null,
+						granularity: data.compare?.granularity || null,
+						points: trimPoints(data.compare?.points || [])
+					}
+				: null,
+			deltaAbs: data.summary?.deltaAbs ?? null,
+			deltaPct: data.summary?.deltaPct ?? null,
+			filters: { start, end, preset, granularity, compareMode }
+		};
+	}
+
+	function buildBrandSplitContext(title, data) {
+		if (!data) return null;
+		return {
+			version: 1,
+			kind: 'brand_split',
+			title,
+			metric: data.metric,
+			metricLabel: METRIC_META?.[data.metric]?.label || data.metric,
+			unit: METRIC_META?.[data.metric]?.unit || 'number',
+			source: data.current?.source || null,
+			compareMode: data.compareMode || 'off',
+			range: data.current?.range || null,
+			compareRange: data.compareRange || null,
+			current: {
+				total: data.summary?.current ?? null,
+				brandShare: data.summary?.currentBrandShare ?? null,
+				segments: (data.current?.segments || []).map((s) => ({
+					key: s.key,
+					label: s.label,
+					points: trimPoints(s.points || [])
+				}))
+			},
+			compare: data.compare
+				? {
+						total: data.summary?.compare ?? null,
+						brandShare: data.summary?.compareBrandShare ?? null,
+						segments: (data.compare?.segments || []).map((s) => ({
+							key: s.key,
+							label: s.label,
+							points: trimPoints(s.points || [])
+						}))
+					}
+				: null,
+			deltaAbs: data.summary?.deltaAbs ?? null,
+			deltaPct: data.summary?.deltaPct ?? null,
+			brandShareDeltaAbs: data.summary?.brandShareDeltaAbs ?? null,
+			brandShareDeltaPct: data.summary?.brandShareDeltaPct ?? null,
+			filters: { start, end, preset, granularity, compareMode }
+		};
+	}
+
+	function buildBreakdownContext({ title, metric, dimension, data, mergedRows }) {
+		if (!data) return null;
+		const meta = METRIC_META?.[metric] || {};
+		return {
+			version: 1,
+			kind: 'breakdown',
+			title,
+			metric,
+			metricLabel: meta.label || metric,
+			unit: meta.unit || 'number',
+			dimension,
+			source: data.current?.source || null,
+			compareMode: data.compareMode || 'off',
+			range: data.current?.range || null,
+			compareRange: data.compareRange || null,
+			currentTotal: data.current?.total ?? null,
+			compareTotal: data.compare?.total ?? null,
+			rows: (mergedRows || []).slice(0, 12).map((r) => ({
+				key: r.key,
+				value: r.value,
+				share: r.share,
+				compareValue: r.compareValue,
+				compareShare: r.compareShare,
+				deltaAbs: r.deltaAbs,
+				deltaPct: r.deltaPct
+			})),
+			filters: { start, end, preset, compareMode }
+		};
+	}
+
 	$effect(() => {
 		if (!clientId) return;
 
@@ -109,9 +310,13 @@
 		const controller = new AbortController();
 		const timer = setTimeout(async () => {
 			for (const metric of cardMetrics) updateCard(metric, { loading: true, error: '' });
+			updateBrandSplit({ loading: true, error: '' });
+			updateBreakdown('topPages', { loading: true, error: '' });
+			updateBreakdown('topQueries', { loading: true, error: '' });
+			updateBreakdown('referralSources', { loading: true, error: '' });
 
-			await Promise.all(
-				cardMetrics.map(async (metric) => {
+			await Promise.all([
+				...cardMetrics.map(async (metric) => {
 					try {
 						const data = await loadMetric(metric, request, controller.signal);
 						updateCard(metric, { data });
@@ -120,14 +325,143 @@
 					} finally {
 						updateCard(metric, { loading: false });
 					}
-				})
-			);
+				}),
+				(async () => {
+					try {
+						const data = await loadBrandSplit('clicks', request, controller.signal);
+						updateBrandSplit({ data });
+					} catch (e) {
+						if (e?.name !== 'AbortError') updateBrandSplit({ error: e?.message || 'Failed' });
+					} finally {
+						updateBrandSplit({ loading: false });
+					}
+				})(),
+				(async () => {
+					try {
+						const data = await loadBreakdown(
+							{ metric: 'sessions', dimension: 'page', limit: 8 },
+							request,
+							controller.signal
+						);
+						updateBreakdown('topPages', { data });
+					} catch (e) {
+						if (e?.name !== 'AbortError') updateBreakdown('topPages', { error: e?.message || 'Failed' });
+					} finally {
+						updateBreakdown('topPages', { loading: false });
+					}
+				})(),
+				(async () => {
+					try {
+						const data = await loadBreakdown(
+							{ metric: 'clicks', dimension: 'query', limit: 10 },
+							request,
+							controller.signal
+						);
+						updateBreakdown('topQueries', { data });
+					} catch (e) {
+						if (e?.name !== 'AbortError') updateBreakdown('topQueries', { error: e?.message || 'Failed' });
+					} finally {
+						updateBreakdown('topQueries', { loading: false });
+					}
+				})(),
+				(async () => {
+					try {
+						const data = await loadBreakdown(
+							{ metric: 'sessions', dimension: 'source', limit: 8 },
+							request,
+							controller.signal
+						);
+						updateBreakdown('referralSources', { data });
+					} catch (e) {
+						if (e?.name !== 'AbortError')
+							updateBreakdown('referralSources', { error: e?.message || 'Failed' });
+					} finally {
+						updateBreakdown('referralSources', { loading: false });
+					}
+				})()
+			]);
 		}, 200);
 
 		return () => {
 			clearTimeout(timer);
 			controller.abort();
 		};
+	});
+
+	$effect(() => {
+		if (!clientId) return;
+
+		const kpis = Object.fromEntries(
+			cardMetrics.map((metric) => {
+				const data = cards?.[metric]?.data || null;
+				return [
+					metric,
+					data
+						? {
+								label: METRIC_META?.[metric]?.label || metric,
+								unit: METRIC_META?.[metric]?.unit || 'number',
+								source: data.current?.source || null,
+								current: data.summary?.current ?? null,
+								compare: data.summary?.compare ?? null,
+								deltaAbs: data.summary?.deltaAbs ?? null,
+								deltaPct: data.summary?.deltaPct ?? null
+							}
+						: null
+				];
+			})
+		);
+
+		const timeSeries = Object.fromEntries(
+			cardMetrics.map((metric) => {
+				const data = cards?.[metric]?.data || null;
+				return [
+					metric,
+					data
+						? {
+								label: METRIC_META?.[metric]?.label || metric,
+								unit: METRIC_META?.[metric]?.unit || 'number',
+								source: data.current?.source || null,
+								granularity: data.current?.granularity || null,
+								range: data.current?.range || null,
+								compareMode: data.compareMode || 'off',
+								compareRange: data.compareRange || null,
+								points: trimPoints(data.current?.points || []),
+								comparePoints: trimPoints(data.compare?.points || [])
+							}
+						: null
+				];
+			})
+		);
+
+		const breakdownTop = (rows, metric) =>
+			(rows || []).slice(0, 5).map((r) => ({ key: r.key, value: r.value, unit: METRIC_META?.[metric]?.unit }));
+
+		dashboardContext.set({
+			clientId,
+			filters: { start, end, preset, compareMode, granularity },
+			kpis,
+			timeSeries,
+			breakdowns: {
+				topPages: breakdowns.topPages.data
+					? breakdownTop(breakdowns.topPages.data.current?.rows, 'sessions')
+					: [],
+				topQueries: breakdowns.topQueries.data
+					? breakdownTop(breakdowns.topQueries.data.current?.rows, 'clicks')
+					: [],
+				referralSources: breakdowns.referralSources.data
+					? breakdownTop(breakdowns.referralSources.data.current?.rows, 'sessions')
+					: []
+			},
+			brandSplit: brandSplit.data
+				? {
+						metric: brandSplit.data.metric,
+						current: brandSplit.data.summary?.current ?? null,
+						currentBrandShare: brandSplit.data.summary?.currentBrandShare ?? null,
+						deltaPct: brandSplit.data.summary?.deltaPct ?? null
+					}
+				: null,
+			updatedAt: Date.now()
+		});
 	});
 </script>
 
@@ -213,6 +547,7 @@
 		{#each cardMetrics as metric (metric)}
 			{@const state = cards[metric]}
 			{@const data = state?.data}
+			{@const aiContext = buildTimeSeriesContext(metric, data)}
 			{@const option = data
 				? buildTimeSeriesOption({
 						metric,
@@ -231,8 +566,188 @@
 				loading={state?.loading}
 				error={state?.error}
 			>
+				<CardAssistant
+					slot="actions"
+					title={METRIC_META?.[metric]?.label || metric}
+					context={aiContext}
+					disabled={!aiContext || state?.loading || !!state?.error}
+				/>
 				<EChart {option} height={220} />
 			</DashboardCard>
 		{/each}
+	</CardGrid>
+
+	<CardGrid cols={2}>
+		<div class="md:col-span-2">
+			<DashboardCard
+				title="Brand vs Non-brand (Clicks)"
+				sourceLabel="GSC"
+				kpiValue={brandSplit.data ? formatMetricValue('clicks', brandSplit.data.summary?.current) : ''}
+				compareMode={brandSplit.data?.compareMode || compareMode}
+				deltaPct={brandSplit.data?.summary?.deltaPct ?? null}
+				loading={brandSplit.loading}
+				error={brandSplit.error}
+				deltaAbsLabel={brandSplit.data?.summary?.currentBrandShare != null
+					? `Brand share: ${formatShare(brandSplit.data.summary.currentBrandShare)}`
+					: ''}
+			>
+				<CardAssistant
+					slot="actions"
+					title="Brand vs Non-brand (Clicks)"
+					context={buildBrandSplitContext('Brand vs Non-brand (Clicks)', brandSplit.data)}
+					disabled={!brandSplit.data || brandSplit.loading || !!brandSplit.error}
+				/>
+				<EChart
+					option={
+						brandSplit.data
+							? buildStackedSplitOption({
+									metric: brandSplit.data.metric,
+									currentSegments: brandSplit.data.current?.segments || [],
+									granularity: brandSplit.data.current?.granularity || granularity
+								})
+							: {}
+					}
+					height={260}
+				/>
+			</DashboardCard>
+		</div>
+
+		<div>
+			<DashboardCard
+				title="Referral Sources"
+				sourceLabel="GA4"
+				kpiValue={breakdowns.referralSources.data
+					? formatMetricValue('sessions', breakdowns.referralSources.data.summary?.current)
+					: ''}
+				compareMode={breakdowns.referralSources.data?.compareMode || compareMode}
+				deltaPct={breakdowns.referralSources.data?.summary?.deltaPct ?? null}
+				loading={breakdowns.referralSources.loading}
+				error={breakdowns.referralSources.error}
+			>
+				<CardAssistant
+					slot="actions"
+					title="Referral Sources"
+					context={
+						breakdowns.referralSources.data
+							? buildBreakdownContext({
+									title: 'Referral Sources',
+									metric: 'sessions',
+									dimension: 'source',
+									data: breakdowns.referralSources.data,
+									mergedRows: mergedRowsForBreakdown(breakdowns.referralSources.data)
+								})
+							: null
+					}
+					disabled={
+						!breakdowns.referralSources.data ||
+						breakdowns.referralSources.loading ||
+						!!breakdowns.referralSources.error
+					}
+				/>
+				<EChart
+					option={
+						breakdowns.referralSources.data
+							? buildHorizontalBarOption({
+									metric: 'sessions',
+									rows: breakdowns.referralSources.data.current?.rows || []
+								})
+							: {}
+					}
+					height={260}
+				/>
+			</DashboardCard>
+		</div>
+
+		<div>
+			<DashboardCard
+				title="Top Pages"
+				sourceLabel="GA4"
+				kpiValue={breakdowns.topPages.data
+					? formatMetricValue('sessions', breakdowns.topPages.data.summary?.current)
+					: ''}
+				compareMode={breakdowns.topPages.data?.compareMode || compareMode}
+				deltaPct={breakdowns.topPages.data?.summary?.deltaPct ?? null}
+				loading={breakdowns.topPages.loading}
+				error={breakdowns.topPages.error}
+			>
+				<CardAssistant
+					slot="actions"
+					title="Top Pages"
+					context={
+						breakdowns.topPages.data
+							? buildBreakdownContext({
+									title: 'Top Pages',
+									metric: 'sessions',
+									dimension: 'page',
+									data: breakdowns.topPages.data,
+									mergedRows: mergedRowsForBreakdown(breakdowns.topPages.data)
+								})
+							: null
+					}
+					disabled={!breakdowns.topPages.data || breakdowns.topPages.loading || !!breakdowns.topPages.error}
+				/>
+				<DataTable
+					columns={[
+						{ key: 'key', label: 'Page', align: 'left' },
+						{ key: 'valueLabel', label: 'Sessions', align: 'right' },
+						{ key: 'shareLabel', label: 'Share', align: 'right' },
+						...(compareMode !== 'off' ? [{ key: 'deltaLabel', label: 'Δ', align: 'right' }] : [])
+					]}
+					rows={mergedRowsForBreakdown(breakdowns.topPages.data).map((r) => ({
+						key: r.key,
+						valueLabel: formatMetricValue('sessions', r.value),
+						shareLabel: formatShare(r.share),
+						deltaLabel: compareMode === 'off' ? '' : formatDeltaPct(r.deltaPct)
+					}))}
+				/>
+			</DashboardCard>
+		</div>
+
+		<div>
+			<DashboardCard
+				title="Top Queries"
+				sourceLabel="GSC"
+				kpiValue={breakdowns.topQueries.data
+					? formatMetricValue('clicks', breakdowns.topQueries.data.summary?.current)
+					: ''}
+				compareMode={breakdowns.topQueries.data?.compareMode || compareMode}
+				deltaPct={breakdowns.topQueries.data?.summary?.deltaPct ?? null}
+				loading={breakdowns.topQueries.loading}
+				error={breakdowns.topQueries.error}
+			>
+				<CardAssistant
+					slot="actions"
+					title="Top Queries"
+					context={
+						breakdowns.topQueries.data
+							? buildBreakdownContext({
+									title: 'Top Queries',
+									metric: 'clicks',
+									dimension: 'query',
+									data: breakdowns.topQueries.data,
+									mergedRows: mergedRowsForBreakdown(breakdowns.topQueries.data)
+								})
+							: null
+					}
+					disabled={
+						!breakdowns.topQueries.data || breakdowns.topQueries.loading || !!breakdowns.topQueries.error
+					}
+				/>
+				<DataTable
+					columns={[
+						{ key: 'key', label: 'Query', align: 'left' },
+						{ key: 'valueLabel', label: 'Clicks', align: 'right' },
+						{ key: 'shareLabel', label: 'Share', align: 'right' },
+						...(compareMode !== 'off' ? [{ key: 'deltaLabel', label: 'Δ', align: 'right' }] : [])
+					]}
+					rows={mergedRowsForBreakdown(breakdowns.topQueries.data).map((r) => ({
+						key: r.key,
+						valueLabel: formatMetricValue('clicks', r.value),
+						shareLabel: formatShare(r.share),
+						deltaLabel: compareMode === 'off' ? '' : formatDeltaPct(r.deltaPct)
+					}))}
+				/>
+			</DashboardCard>
+		</div>
 	</CardGrid>
 </div>

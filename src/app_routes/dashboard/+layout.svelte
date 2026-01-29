@@ -1,5 +1,6 @@
 <script>
 	import { page } from '$app/stores';
+	import GlobalChatbot from '$lib/components/ai/GlobalChatbot.svelte';
 	import SidekickSidebar from '$lib/components/SidekickSidebar.svelte';
 
 	let { children } = $props();
@@ -30,4 +31,5 @@
 
 <SidekickSidebar {title}>
 	{@render children()}
+	<GlobalChatbot />
 </SidekickSidebar>

@@ -2,7 +2,7 @@ import { json } from '@sveltejs/kit';
 import { COMPARE_MODES, GRANULARITIES, METRIC_META } from '$lib/analytics/constants.js';
 import { todayIsoUtc, addDays } from '$lib/analytics/date.js';
 import { normalizeMetricId } from '$lib/analytics/normalize.js';
-import { getTimeSeries } from '$lib/analytics/provider.js';
+import { getBrandSplit } from '$lib/analytics/provider.js';
 
 function isValidEnumValue(enumObj, v) {
 	return Object.values(enumObj).includes(v);
@@ -10,7 +10,7 @@ function isValidEnumValue(enumObj, v) {
 
 export function GET({ url }) {
 	const clientId = url.searchParams.get('clientId') || 'mock-client';
-	const metric = normalizeMetricId(url.searchParams.get('metric') || 'sessions');
+	const metric = normalizeMetricId(url.searchParams.get('metric') || 'clicks');
 
 	if (!METRIC_META[metric]) {
 		return json({ error: `Unknown metric: ${metric}` }, { status: 400 });
@@ -30,14 +30,13 @@ export function GET({ url }) {
 	}
 
 	try {
-		const data = getTimeSeries({
+		const data = getBrandSplit({
 			clientId,
 			metric,
 			range: { start, end },
 			compareMode,
 			granularity
 		});
-
 		return json(data);
 	} catch (e) {
 		return json({ error: e?.message || 'Unknown error' }, { status: 500 });

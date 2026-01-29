@@ -26,7 +26,14 @@ export const METRICS = /** @type {const} */ ({
 	ENGAGED_SESSIONS: 'engagedSessions',
 	BOUNCE_RATE: 'bounceRate',
 	PURCHASES: 'purchases',
-	REVENUE: 'revenue'
+	REVENUE: 'revenue',
+	AVERAGE_PURCHASE_VALUE: 'averagePurchaseValue'
+});
+
+export const DIMENSIONS = /** @type {const} */ ({
+	PAGE: 'page',
+	QUERY: 'query',
+	SOURCE: 'source'
 });
 
 export const METRIC_META = /** @type {const} */ ({
@@ -77,6 +84,12 @@ export const METRIC_META = /** @type {const} */ ({
 		unit: 'currency',
 		aggregate: 'sum',
 		label: 'Revenue',
+		source: ANALYTICS_SOURCES.GA4
+	},
+	[METRICS.AVERAGE_PURCHASE_VALUE]: {
+		unit: 'currency',
+		aggregate: 'avg',
+		label: 'Avg Purchase Value',
 		source: ANALYTICS_SOURCES.GA4
 	}
 });

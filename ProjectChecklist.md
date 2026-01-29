@@ -29,38 +29,38 @@ Use this checklist to track progress against the implementation plan in `Project
 
 ## Phase 3 — Data Tab: Core Dashboard Content (Mock)
 
-- [ ] Sessions (GA4) card (series + deltas)
-- [ ] Engaged sessions (GA4) card (series + deltas)
-- [ ] Bounce rate (GA4) card (series + deltas)
-- [ ] Clicks (GSC) card (series + deltas)
-- [ ] Impressions (GSC) card (series + deltas)
-- [ ] CTR (GSC) card (series + deltas)
-- [ ] Purchases/Conversions (GA4 events) card (series + deltas)
-- [ ] Revenue (GA4) card (series + deltas)
-- [ ] Brand vs non-brand split card (stacked chart)
-- [ ] Top pages card (table + optional sparklines)
-- [ ] Top queries/phrases card (table)
-- [ ] Referral sources card (bar/table)
-- [ ] All cards respect date range + MoM/YoY toggles
+- [x] Sessions (GA4) card (series + deltas)
+- [x] Engaged sessions (GA4) card (series + deltas)
+- [x] Bounce rate (GA4) card (series + deltas)
+- [x] Clicks (GSC) card (series + deltas)
+- [x] Impressions (GSC) card (series + deltas)
+- [x] CTR (GSC) card (series + deltas)
+- [x] Purchases/Conversions (GA4 events) card (series + deltas)
+- [x] Revenue (GA4) card (series + deltas)
+- [x] Brand vs non-brand split card (stacked chart)
+- [x] Top pages card (table + optional sparklines)
+- [x] Top queries/phrases card (table)
+- [x] Referral sources card (bar/table)
+- [x] All cards respect date range + MoM/YoY toggles
 
 ## Phase 4 — Per-Card AI (Robot Icon)
 
-- [ ] Robot icon shown in every card header
-- [ ] Clicking robot opens scoped popover/drawer
-- [ ] Define `CardContext` payload contract for AI
-- [ ] Implement `/api/ai/card` endpoint (mock response first)
-- [ ] AI answers are grounded in provided numbers (no hallucinated metrics)
-- [ ] Structured response UI (summary bullets, key findings, next checks)
+- [x] Robot icon shown in every card header
+- [x] Clicking robot opens scoped popover/drawer
+- [x] Define `CardContext` payload contract for AI
+- [x] Implement `/api/ai/card` endpoint (mock response first)
+- [x] AI answers are grounded in provided numbers (no hallucinated metrics)
+- [x] Structured response UI (summary bullets, key findings, next checks)
 
 ## Phase 5 — Global Chatbot + “Generate Graph”
 
-- [ ] Bottom-right chatbot launcher + chat window UI
-- [ ] Chat understands current dashboard context (client + filters)
-- [ ] Define `GraphSpec` contract (metric, dimension, range, chart type, filters)
-- [ ] Implement `/api/ai/chat` endpoint (mock response first)
-- [ ] AI can propose a `GraphSpec` and UI can render it as a new card
-- [ ] Ambiguous requests trigger clarifying questions
-- [ ] Generated cards appear in **Custom Analysis**
+- [x] Bottom-right chatbot launcher + chat window UI
+- [x] Chat understands current dashboard context (client + filters)
+- [x] Define `GraphSpec` contract (metric, dimension, range, chart type, filters)
+- [x] Implement `/api/ai/chat` endpoint (mock response first)
+- [x] AI can propose a `GraphSpec` and UI can render it as a new card
+- [x] Ambiguous requests trigger clarifying questions
+- [x] Generated cards appear in **Custom Analysis**
 
 ## Phase 6 — Report Builder
 
