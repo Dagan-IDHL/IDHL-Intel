@@ -64,12 +64,12 @@ Use this checklist to track progress against the implementation plan in `Project
 
 ## Phase 6 — Report Builder
 
-- [ ] Report grid canvas renders empty slots with “+”
-- [ ] Add-card modal (choose data source + card type)
-- [ ] Report supports adding standard cards + custom graph cards
-- [ ] Drag/drop reordering works reliably
-- [ ] Report preview mode looks client-ready
-- [ ] Placeholder “Export PDF” button exists (mock phase)
+- [x] Report grid canvas renders empty slots with “+”
+- [x] Add-card modal (choose data source + card type)
+- [x] Report supports adding standard cards + custom graph cards
+- [x] Drag/drop reordering works reliably
+- [x] Report preview mode looks client-ready
+- [x] Placeholder “Export PDF” button exists (mock phase)
 
 ## Phase 7 — Persistence (PocketBase)
 

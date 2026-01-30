@@ -11,7 +11,7 @@
 	export let error = '';
 </script>
 
-<section class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+<section class="flex h-full flex-col rounded-xl border border-gray-300 bg-white p-4 shadow-sm">
 	<header class="flex items-start justify-between gap-3">
 		<div class="min-w-0">
 			<div class="flex flex-wrap items-center gap-2">
@@ -54,7 +54,7 @@
 	</header>
 
 	{#if loading}
-		<div class="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-600">
+		<div class="mt-4 rounded-lg border border-gray-300 bg-gray-50 p-3 text-sm text-gray-600">
 			Loading…
 		</div>
 	{:else if error}
@@ -62,7 +62,7 @@
 			{error}
 		</div>
 	{:else}
-		<div class="mt-4">
+		<div class="mt-4 min-h-0 flex-1">
 			<slot />
 		</div>
 	{/if}
