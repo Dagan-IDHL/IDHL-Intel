@@ -1,3 +1,34 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/forms';
 @plugin '@tailwindcss/typography';
+
+:root {
+	/* Pulse Insight — light theme tokens */
+	--pi-bg: oklch(97% 0.01 265);
+	--pi-surface: oklch(100% 0 0);
+	--pi-surface-2: oklch(96% 0.01 265);
+	--pi-border: oklch(86% 0.02 265);
+	--pi-text: oklch(24% 0.02 265);
+	--pi-muted: oklch(55% 0.03 265);
+
+	--pi-primary: oklch(42.4% 0.199 265.638);
+	--pi-primary-2: oklch(62% 0.17 250);
+	--pi-accent: oklch(72% 0.15 200);
+
+	--pi-focus: var(--pi-primary);
+}
+
+html,
+body {
+	height: 100%;
+}
+
+body {
+	color: var(--pi-text);
+	background: var(--pi-bg);
+}
+
+:focus-visible {
+	outline: 2px solid var(--pi-focus);
+	outline-offset: 2px;
+}

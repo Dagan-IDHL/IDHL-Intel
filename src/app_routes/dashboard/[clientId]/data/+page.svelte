@@ -44,6 +44,17 @@
 		'revenue'
 	];
 
+	const cardIcons = {
+		sessions: 'activity',
+		engagedSessions: 'activity',
+		bounceRate: 'trendDown',
+		clicks: 'click',
+		impressions: 'eye',
+		ctr: 'percent',
+		purchases: 'cart',
+		revenue: 'dollar'
+	};
+
 	let cards = $state(
 		Object.fromEntries(cardMetrics.map((m) => [m, { loading: false, error: '', data: null }]))
 	);
@@ -345,7 +356,8 @@
 						);
 						updateBreakdown('topPages', { data });
 					} catch (e) {
-						if (e?.name !== 'AbortError') updateBreakdown('topPages', { error: e?.message || 'Failed' });
+						if (e?.name !== 'AbortError')
+							updateBreakdown('topPages', { error: e?.message || 'Failed' });
 					} finally {
 						updateBreakdown('topPages', { loading: false });
 					}
@@ -359,7 +371,8 @@
 						);
 						updateBreakdown('topQueries', { data });
 					} catch (e) {
-						if (e?.name !== 'AbortError') updateBreakdown('topQueries', { error: e?.message || 'Failed' });
+						if (e?.name !== 'AbortError')
+							updateBreakdown('topQueries', { error: e?.message || 'Failed' });
 					} finally {
 						updateBreakdown('topQueries', { loading: false });
 					}
@@ -434,7 +447,9 @@
 		);
 
 		const breakdownTop = (rows, metric) =>
-			(rows || []).slice(0, 5).map((r) => ({ key: r.key, value: r.value, unit: METRIC_META?.[metric]?.unit }));
+			(rows || [])
+				.slice(0, 5)
+				.map((r) => ({ key: r.key, value: r.value, unit: METRIC_META?.[metric]?.unit }));
 
 		dashboardContext.set({
 			clientId,
@@ -470,75 +485,223 @@
 </svelte:head>
 
 <div class="space-y-5">
-	<div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+	<div class="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
 		<div class="flex flex-wrap items-end gap-3">
-			<div class="min-w-[190px]">
-				<label class="mb-1 block text-xs font-semibold tracking-wide text-gray-500 uppercase">
-					Preset
-				</label>
-				<select
-					class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
-					bind:value={preset}
-					on:change={(e) => setPreset(e.currentTarget.value)}
-				>
-					<option value="last_28_days">Last 28 days</option>
-					<option value="last_month">Last month</option>
-					<option value="last_quarter">Last quarter</option>
-					<option value="last_6_months">Last 6 months</option>
-					<option value="last_12_months">Last 12 months</option>
-					<option value="last_16_months">Last 16 months</option>
-				</select>
-			</div>
+			<div class="flex flex-wrap items-end gap-3">
+				<div class="min-w-[210px]">
+					<label
+						class="mb-1 block text-[11px] font-semibold tracking-wide text-[var(--pi-muted)] uppercase"
+					>
+						Preset
+					</label>
+					<div class="relative">
+						<select
+							class="w-full appearance-none rounded-xl border border-[var(--pi-border)] bg-white px-3 py-2 pr-10 text-sm font-semibold text-gray-900 shadow-sm focus:border-transparent focus:ring-2 focus:ring-[var(--pi-focus)]"
+							bind:value={preset}
+							on:change={(e) => setPreset(e.currentTarget.value)}
+						>
+							<option value="last_28_days">Last 28 days</option>
+							<option value="last_month">Last month</option>
+							<option value="last_quarter">Last quarter</option>
+							<option value="last_6_months">Last 6 months</option>
+							<option value="last_12_months">Last 12 months</option>
+							<option value="last_16_months">Last 16 months</option>
+						</select>
+						<span
+							class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-[var(--pi-muted)]"
+						>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								viewBox="0 0 20 20"
+								fill="currentColor"
+								class="h-4 w-4"
+							>
+								<path
+									fill-rule="evenodd"
+									d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.24 4.5a.75.75 0 0 1-1.08 0l-4.24-4.5a.75.75 0 0 1 .02-1.06Z"
+									clip-rule="evenodd"
+								/>
+							</svg>
+						</span>
+					</div>
+				</div>
 
-			<div>
-				<label class="mb-1 block text-xs font-semibold tracking-wide text-gray-500 uppercase">
-					Start
-				</label>
-				<input
-					type="date"
-					class="rounded-lg border border-gray-300 px-3 py-2 text-sm"
-					bind:value={start}
-				/>
-			</div>
+				<div>
+					<label
+						class="mb-1 block text-[11px] font-semibold tracking-wide text-[var(--pi-muted)] uppercase"
+					>
+						Start
+					</label>
+					<div class="relative">
+						<span
+							class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-[var(--pi-muted)]"
+						>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								class="h-4 w-4"
+							>
+								<path d="M8 2v4" />
+								<path d="M16 2v4" />
+								<path d="M3 10h18" />
+								<path d="M4 6h16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z" />
+							</svg>
+						</span>
+						<input
+							type="date"
+							class="w-[170px] rounded-xl border border-[var(--pi-border)] bg-white px-3 py-2 pl-9 text-sm font-semibold text-gray-900 shadow-sm focus:border-transparent focus:ring-2 focus:ring-[var(--pi-focus)]"
+							bind:value={start}
+						/>
+					</div>
+				</div>
 
-			<div>
-				<label class="mb-1 block text-xs font-semibold tracking-wide text-gray-500 uppercase">
-					End
-				</label>
-				<input
-					type="date"
-					class="rounded-lg border border-gray-300 px-3 py-2 text-sm"
-					bind:value={end}
-				/>
+				<div>
+					<label
+						class="mb-1 block text-[11px] font-semibold tracking-wide text-[var(--pi-muted)] uppercase"
+					>
+						End
+					</label>
+					<div class="relative">
+						<span
+							class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-[var(--pi-muted)]"
+						>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								class="h-4 w-4"
+							>
+								<path d="M8 2v4" />
+								<path d="M16 2v4" />
+								<path d="M3 10h18" />
+								<path d="M4 6h16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z" />
+							</svg>
+						</span>
+						<input
+							type="date"
+							class="w-[170px] rounded-xl border border-[var(--pi-border)] bg-white px-3 py-2 pl-9 text-sm font-semibold text-gray-900 shadow-sm focus:border-transparent focus:ring-2 focus:ring-[var(--pi-focus)]"
+							bind:value={end}
+						/>
+					</div>
+				</div>
 			</div>
+			<div class="flex flex-wrap items-end gap-3 sm:ml-auto">
+				<div class="min-w-[190px]">
+					<label
+						class="mb-1 block text-[11px] font-semibold tracking-wide text-[var(--pi-muted)] uppercase"
+					>
+						Compare
+					</label>
+					<div
+						class="inline-flex w-full rounded-xl bg-[var(--pi-surface-2)] p-1 ring-1 ring-[var(--pi-border)]"
+					>
+						<button
+							type="button"
+							class="flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition-colors"
+							class:bg-white={compareMode === 'off'}
+							class:shadow-sm={compareMode === 'off'}
+							class:text-gray-900={compareMode === 'off'}
+							class:text-[var(--pi-muted)]={compareMode !== 'off'}
+							class:hover:text-gray-900={compareMode !== 'off'}
+							on:click={() => (compareMode = 'off')}
+						>
+							Off
+						</button>
+						<button
+							type="button"
+							class="flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition-colors"
+							class:bg-white={compareMode === 'mom'}
+							class:shadow-sm={compareMode === 'mom'}
+							class:text-gray-900={compareMode === 'mom'}
+							class:text-[var(--pi-muted)]={compareMode !== 'mom'}
+							class:hover:text-gray-900={compareMode !== 'mom'}
+							on:click={() => (compareMode = 'mom')}
+						>
+							MoM
+						</button>
+						<button
+							type="button"
+							class="flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition-colors"
+							class:bg-white={compareMode === 'yoy'}
+							class:shadow-sm={compareMode === 'yoy'}
+							class:text-gray-900={compareMode === 'yoy'}
+							class:text-[var(--pi-muted)]={compareMode !== 'yoy'}
+							class:hover:text-gray-900={compareMode !== 'yoy'}
+							on:click={() => (compareMode = 'yoy')}
+						>
+							YoY
+						</button>
+					</div>
+				</div>
 
-			<div class="min-w-[170px]">
-				<label class="mb-1 block text-xs font-semibold tracking-wide text-gray-500 uppercase">
-					Compare
-				</label>
-				<select
-					class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
-					bind:value={compareMode}
-				>
-					<option value="off">Off</option>
-					<option value="mom">MoM</option>
-					<option value="yoy">YoY</option>
-				</select>
-			</div>
-
-			<div class="min-w-[170px]">
-				<label class="mb-1 block text-xs font-semibold tracking-wide text-gray-500 uppercase">
-					Granularity
-				</label>
-				<select
-					class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
-					bind:value={granularity}
-				>
-					<option value="auto">Auto</option>
-					<option value="daily">Daily</option>
-					<option value="weekly">Weekly</option>
-					<option value="monthly">Monthly</option>
-				</select>
+				<div class="min-w-[260px]">
+					<label
+						class="mb-1 block text-[11px] font-semibold tracking-wide text-[var(--pi-muted)] uppercase"
+					>
+						Granularity
+					</label>
+					<div
+						class="inline-flex w-full rounded-xl bg-[var(--pi-surface-2)] p-1 ring-1 ring-[var(--pi-border)]"
+					>
+						<button
+							type="button"
+							class="flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition-colors"
+							class:bg-white={granularity === 'auto'}
+							class:shadow-sm={granularity === 'auto'}
+							class:text-gray-900={granularity === 'auto'}
+							class:text-[var(--pi-muted)]={granularity !== 'auto'}
+							class:hover:text-gray-900={granularity !== 'auto'}
+							on:click={() => (granularity = 'auto')}
+						>
+							Auto
+						</button>
+						<button
+							type="button"
+							class="flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition-colors"
+							class:bg-white={granularity === 'daily'}
+							class:shadow-sm={granularity === 'daily'}
+							class:text-gray-900={granularity === 'daily'}
+							class:text-[var(--pi-muted)]={granularity !== 'daily'}
+							class:hover:text-gray-900={granularity !== 'daily'}
+							on:click={() => (granularity = 'daily')}
+						>
+							Daily
+						</button>
+						<button
+							type="button"
+							class="flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition-colors"
+							class:bg-white={granularity === 'weekly'}
+							class:shadow-sm={granularity === 'weekly'}
+							class:text-gray-900={granularity === 'weekly'}
+							class:text-[var(--pi-muted)]={granularity !== 'weekly'}
+							class:hover:text-gray-900={granularity !== 'weekly'}
+							on:click={() => (granularity = 'weekly')}
+						>
+							Weekly
+						</button>
+						<button
+							type="button"
+							class="flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition-colors"
+							class:bg-white={granularity === 'monthly'}
+							class:shadow-sm={granularity === 'monthly'}
+							class:text-gray-900={granularity === 'monthly'}
+							class:text-[var(--pi-muted)]={granularity !== 'monthly'}
+							class:hover:text-gray-900={granularity !== 'monthly'}
+							on:click={() => (granularity = 'monthly')}
+						>
+							Monthly
+						</button>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -558,6 +721,7 @@
 					})
 				: {}}
 			<DashboardCard
+				icon={cardIcons[metric] || ''}
 				title={METRIC_META?.[metric]?.label || metric}
 				sourceLabel={data?.current?.source ? data.current.source.toUpperCase() : ''}
 				kpiValue={data ? formatMetricValue(metric, data.summary.current) : ''}
@@ -580,9 +744,12 @@
 	<CardGrid cols={2}>
 		<div class="md:col-span-2">
 			<DashboardCard
+				icon="percent"
 				title="Brand vs Non-brand (Clicks)"
 				sourceLabel="GSC"
-				kpiValue={brandSplit.data ? formatMetricValue('clicks', brandSplit.data.summary?.current) : ''}
+				kpiValue={brandSplit.data
+					? formatMetricValue('clicks', brandSplit.data.summary?.current)
+					: ''}
 				compareMode={brandSplit.data?.compareMode || compareMode}
 				deltaPct={brandSplit.data?.summary?.deltaPct ?? null}
 				loading={brandSplit.loading}
@@ -598,15 +765,13 @@
 					disabled={!brandSplit.data || brandSplit.loading || !!brandSplit.error}
 				/>
 				<EChart
-					option={
-						brandSplit.data
-							? buildStackedSplitOption({
-									metric: brandSplit.data.metric,
-									currentSegments: brandSplit.data.current?.segments || [],
-									granularity: brandSplit.data.current?.granularity || granularity
-								})
-							: {}
-					}
+					option={brandSplit.data
+						? buildStackedSplitOption({
+								metric: brandSplit.data.metric,
+								currentSegments: brandSplit.data.current?.segments || [],
+								granularity: brandSplit.data.current?.granularity || granularity
+							})
+						: {}}
 					height={260}
 				/>
 			</DashboardCard>
@@ -614,6 +779,7 @@
 
 		<div>
 			<DashboardCard
+				icon="users"
 				title="Referral Sources"
 				sourceLabel="GA4"
 				kpiValue={breakdowns.referralSources.data
@@ -627,32 +793,26 @@
 				<CardAssistant
 					slot="actions"
 					title="Referral Sources"
-					context={
-						breakdowns.referralSources.data
-							? buildBreakdownContext({
-									title: 'Referral Sources',
-									metric: 'sessions',
-									dimension: 'source',
-									data: breakdowns.referralSources.data,
-									mergedRows: mergedRowsForBreakdown(breakdowns.referralSources.data)
-								})
-							: null
-					}
-					disabled={
-						!breakdowns.referralSources.data ||
+					context={breakdowns.referralSources.data
+						? buildBreakdownContext({
+								title: 'Referral Sources',
+								metric: 'sessions',
+								dimension: 'source',
+								data: breakdowns.referralSources.data,
+								mergedRows: mergedRowsForBreakdown(breakdowns.referralSources.data)
+							})
+						: null}
+					disabled={!breakdowns.referralSources.data ||
 						breakdowns.referralSources.loading ||
-						!!breakdowns.referralSources.error
-					}
+						!!breakdowns.referralSources.error}
 				/>
 				<EChart
-					option={
-						breakdowns.referralSources.data
-							? buildHorizontalBarOption({
-									metric: 'sessions',
-									rows: breakdowns.referralSources.data.current?.rows || []
-								})
-							: {}
-					}
+					option={breakdowns.referralSources.data
+						? buildHorizontalBarOption({
+								metric: 'sessions',
+								rows: breakdowns.referralSources.data.current?.rows || []
+							})
+						: {}}
 					height={260}
 				/>
 			</DashboardCard>
@@ -660,6 +820,7 @@
 
 		<div>
 			<DashboardCard
+				icon="file"
 				title="Top Pages"
 				sourceLabel="GA4"
 				kpiValue={breakdowns.topPages.data
@@ -673,18 +834,18 @@
 				<CardAssistant
 					slot="actions"
 					title="Top Pages"
-					context={
-						breakdowns.topPages.data
-							? buildBreakdownContext({
-									title: 'Top Pages',
-									metric: 'sessions',
-									dimension: 'page',
-									data: breakdowns.topPages.data,
-									mergedRows: mergedRowsForBreakdown(breakdowns.topPages.data)
-								})
-							: null
-					}
-					disabled={!breakdowns.topPages.data || breakdowns.topPages.loading || !!breakdowns.topPages.error}
+					context={breakdowns.topPages.data
+						? buildBreakdownContext({
+								title: 'Top Pages',
+								metric: 'sessions',
+								dimension: 'page',
+								data: breakdowns.topPages.data,
+								mergedRows: mergedRowsForBreakdown(breakdowns.topPages.data)
+							})
+						: null}
+					disabled={!breakdowns.topPages.data ||
+						breakdowns.topPages.loading ||
+						!!breakdowns.topPages.error}
 				/>
 				<DataTable
 					columns={[
@@ -705,6 +866,7 @@
 
 		<div>
 			<DashboardCard
+				icon="search"
 				title="Top Queries"
 				sourceLabel="GSC"
 				kpiValue={breakdowns.topQueries.data
@@ -718,20 +880,18 @@
 				<CardAssistant
 					slot="actions"
 					title="Top Queries"
-					context={
-						breakdowns.topQueries.data
-							? buildBreakdownContext({
-									title: 'Top Queries',
-									metric: 'clicks',
-									dimension: 'query',
-									data: breakdowns.topQueries.data,
-									mergedRows: mergedRowsForBreakdown(breakdowns.topQueries.data)
-								})
-							: null
-					}
-					disabled={
-						!breakdowns.topQueries.data || breakdowns.topQueries.loading || !!breakdowns.topQueries.error
-					}
+					context={breakdowns.topQueries.data
+						? buildBreakdownContext({
+								title: 'Top Queries',
+								metric: 'clicks',
+								dimension: 'query',
+								data: breakdowns.topQueries.data,
+								mergedRows: mergedRowsForBreakdown(breakdowns.topQueries.data)
+							})
+						: null}
+					disabled={!breakdowns.topQueries.data ||
+						breakdowns.topQueries.loading ||
+						!!breakdowns.topQueries.error}
 				/>
 				<DataTable
 					columns={[

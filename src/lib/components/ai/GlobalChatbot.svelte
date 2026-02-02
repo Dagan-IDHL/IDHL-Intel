@@ -129,7 +129,7 @@
 	<button
 		type="button"
 		on:click={toggle}
-		class="flex h-12 w-12 items-center justify-center rounded-full bg-[#404b77] text-white shadow-lg hover:bg-[#505c8f]"
+		class="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--pi-primary)] text-white shadow-lg hover:bg-[color-mix(in_oklch,var(--pi-primary)_92%,black)]"
 		aria-label="Open chatbot"
 	>
 		<svg
@@ -184,7 +184,9 @@
 				{#each thread as msg (msg.id)}
 					{#if msg.role === 'user'}
 						<div class="flex justify-end">
-							<div class="max-w-[85%] rounded-2xl bg-[#404b77] px-3 py-2 text-sm text-white">
+							<div
+								class="max-w-[85%] rounded-2xl bg-[var(--pi-primary)] px-3 py-2 text-sm text-white"
+							>
 								{msg.content}
 							</div>
 						</div>
@@ -213,7 +215,9 @@
 														{/each}
 													</div>
 												{:else}
-													<div class="mt-2 text-xs text-gray-600">Reply in chat with your answer.</div>
+													<div class="mt-2 text-xs text-gray-600">
+														Reply in chat with your answer.
+													</div>
 												{/if}
 											</div>
 										{/each}
@@ -224,7 +228,7 @@
 									<div class="mt-3 flex flex-wrap items-center gap-2">
 										<button
 											type="button"
-											class="rounded-lg bg-[#404b77] px-3 py-2 text-xs font-semibold text-white hover:bg-[#505c8f]"
+											class="rounded-lg bg-[var(--pi-primary)] px-3 py-2 text-xs font-semibold text-white hover:bg-[color-mix(in_oklch,var(--pi-primary)_92%,black)]"
 											on:click={() => addGraphFromMessage(msg.id, msg.graphSpec)}
 											disabled={!$page.params?.clientId || addedByMessageId[msg.id]}
 										>
@@ -262,13 +266,13 @@
 			<footer class="border-t border-gray-100 px-4 py-3">
 				<div class="flex items-end gap-2">
 					<textarea
-						class="min-h-[44px] w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-[#404b77]"
+						class="min-h-[44px] w-full resize-none rounded-lg border border-[var(--pi-border)] px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-[var(--pi-focus)]"
 						placeholder="Ask a question…"
 						bind:value={input}
 					/>
 					<button
 						type="button"
-						class="shrink-0 rounded-lg bg-[#404b77] px-4 py-2 text-sm font-semibold text-white hover:bg-[#505c8f] disabled:opacity-60"
+						class="shrink-0 rounded-lg bg-[var(--pi-primary)] px-4 py-2 text-sm font-semibold text-white hover:bg-[color-mix(in_oklch,var(--pi-primary)_92%,black)] disabled:opacity-60"
 						on:click={() => send()}
 						disabled={loading || !String(input || '').trim()}
 					>

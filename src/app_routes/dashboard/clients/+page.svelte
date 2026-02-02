@@ -3,19 +3,19 @@
 </script>
 
 <svelte:head>
-	<title>Clients</title>
+	<title>Pulse Insight — Clients</title>
 </svelte:head>
 
 <div class="space-y-6">
 	<div class="flex flex-wrap items-end justify-between gap-3">
 		<div>
 			<h2 class="text-xl font-semibold text-gray-900">Clients</h2>
-			<p class="mt-1 text-sm text-gray-600">Mock client list (Phase 0).</p>
+			<p class="mt-1 text-sm text-[var(--pi-muted)]">Mock client list.</p>
 		</div>
 
 		<a
 			href="/dashboard/clients/new"
-			class="inline-flex items-center rounded-lg bg-[#404b77] px-4 py-2 text-sm font-semibold text-white hover:bg-[#505c8f]"
+			class="inline-flex items-center rounded-xl bg-[var(--pi-primary)] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[color-mix(in_oklch,var(--pi-primary)_92%,black)]"
 		>
 			Create client
 		</a>
@@ -25,11 +25,13 @@
 		{#each MOCK_CLIENTS as client (client.id)}
 			<a
 				href={`/dashboard/${client.id}/data`}
-				class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-colors hover:border-gray-300 hover:bg-gray-50"
+				class="rounded-2xl border border-[var(--pi-border)] bg-white p-5 shadow-sm transition-colors hover:bg-[var(--pi-surface-2)]"
 			>
 				<div class="text-sm font-semibold text-gray-900">{client.clientName}</div>
-				<div class="mt-1 truncate text-xs text-gray-600">{client.url}</div>
-				<div class="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-[#404b77]">
+				<div class="mt-1 truncate text-xs text-[var(--pi-muted)]">{client.url}</div>
+				<div
+					class="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-[var(--pi-primary)]"
+				>
 					Open
 					<span aria-hidden="true">→</span>
 				</div>

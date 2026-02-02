@@ -1,11 +1,10 @@
-<script>
+﻿<script>
 	import { page } from '$app/stores';
-	import ClientProjectSelectorMock from './ClientProjectSelectorMock.svelte';
 
 	export let title = '';
 
 	let isDropdownOpen = false;
-	const mainMarginLeft = '256px';
+	const year = new Date().getFullYear();
 
 	let userEmail = 'user@idhl.ai';
 	let userRole = 'standard';
@@ -16,47 +15,47 @@
 	$: accountStatusLabel =
 		userRole === 'unlimited' ? 'Unlimited' : userRole === 'pro' ? 'Pro' : 'Standard';
 
+	let pathname = '/dashboard';
+	$: pathname = $page.url.pathname;
+
 	$: clientId = $page.params?.clientId || '';
 
 	/**
+	 * @param {string} currentPath
 	 * @param {string} href
 	 * @param {'exact'|'prefix'} match
 	 */
-	function isActiveHref(href, match = 'exact') {
-		const path = $page.url.pathname;
-		if (match === 'prefix') return path === href || path.startsWith(`${href}/`);
-		return path === href;
+	function isActiveHref(currentPath, href, match = 'exact') {
+		if (match === 'prefix') return currentPath === href || currentPath.startsWith(`${href}/`);
+		return currentPath === href;
 	}
 
-	$: navSections = [
+	$: railItems = [
+		{ name: 'Home', href: '/dashboard', icon: 'home', match: 'exact' },
+		{ name: 'Clients', href: '/dashboard/clients', icon: 'users', match: 'prefix' },
 		...(clientId
 			? [
+					{ name: 'Data', href: `/dashboard/${clientId}/data`, icon: 'dashboard', match: 'prefix' },
 					{
-						title: 'Client',
-						items: [
-							{ name: 'Data', href: `/dashboard/${clientId}/data`, icon: 'dashboard' },
-							{
-								name: 'Custom Analysis',
-								href: `/dashboard/${clientId}/custom-analysis`,
-								icon: 'sparkles'
-							},
-							{ name: 'Report', href: `/dashboard/${clientId}/report`, icon: 'file' }
-						]
-					}
+						name: 'Analysis',
+						href: `/dashboard/${clientId}/custom-analysis`,
+						icon: 'sparkles',
+						match: 'prefix'
+					},
+					{ name: 'Report', href: `/dashboard/${clientId}/report`, icon: 'file', match: 'prefix' }
 				]
-			: []),
-		{
-			title: 'Workspace',
-			items: [{ name: 'Clients', href: '/dashboard/clients', icon: 'users', match: 'prefix' }]
-		}
+			: [])
 	];
+	$: baseItems = railItems.slice(0, 2);
+	$: clientItems = railItems.slice(2);
 
 	// Back-compat/safety: if any stale compiled markup still references `navItems`, keep it defined.
 	// (The current template uses `navSections`.)
 	let navItems = [];
-	$: navItems = navSections.flatMap((s) => s.items || []);
+	$: navItems = railItems;
 
 	const iconMap = {
+		home: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 10v11h14V10"/><path d="M9 21v-6h6v6"/></svg>',
 		dashboard:
 			'<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>',
 		sparkles:
@@ -84,119 +83,138 @@
 
 <svelte:window on:click={closeDropdown} />
 
-<div class="flex h-screen bg-white">
-	<!-- Primary Sidebar Navigation -->
-	<aside class="fixed top-0 left-0 z-20 h-screen w-64 overflow-hidden bg-[#f2e9e4] pt-16 shadow-lg">
-		<div class="flex h-full flex-col">
-			<!-- Client Project Selector -->
-			<div class="p-4">
-				<ClientProjectSelectorMock isCollapsed={false} />
-			</div>
+<div class="min-h-screen text-[var(--pi-text)]">
+	<aside class="fixed inset-y-0 left-0 z-30 w-20 border-r border-[var(--pi-border)] bg-white">
+		<div class="flex h-full flex-col items-center gap-3 overflow-hidden py-4">
+			<a
+				href="/dashboard"
+				class="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-[var(--pi-primary)] via-[var(--pi-primary-2)] to-[var(--pi-accent)] text-white shadow-sm"
+				aria-label="Pulse Insight"
+				title="Pulse Insight"
+			>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					viewBox="0 0 24 24"
+					class="h-5 w-5"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+				>
+					<path d="M7 14a5 5 0 1 0 0-4" />
+					<path d="M17 10a5 5 0 1 1 0 4" />
+					<path d="M10.5 12h3" />
+				</svg>
+			</a>
 
-			<!-- Navigation Menu -->
-			<nav class="flex-1 space-y-6 p-6" aria-label="Sidebar navigation">
-				{#each navSections as section (section.title)}
-					<div>
-						<div class="mb-2 px-1 text-[11px] font-semibold tracking-wide text-[#404b77] uppercase">
-							{section.title}
-						</div>
-						<div class="space-y-2">
-							{#each section.items as item (item.href)}
-								<a
-									href={item.href}
-									class="flex h-12 w-full cursor-pointer items-center gap-3 rounded-lg px-4 py-3 text-gray-700 transition-all duration-200 focus:outline-none active:scale-100"
-									class:bg-[#404b77]={isActiveHref(item.href, item.match || 'exact')}
-									class:text-white={isActiveHref(item.href, item.match || 'exact')}
-									class:hover:bg-[#e0d5ca]={!isActiveHref(item.href, item.match || 'exact')}
-									class:hover:translate-x-2={!isActiveHref(item.href, item.match || 'exact')}
+			<nav class="mt-2 w-full px-2" aria-label="Primary navigation">
+				<div class="grid grid-cols-1 gap-2">
+					{#each baseItems as item (item.href)}
+						{@const active = isActiveHref(pathname, item.href, item.match || 'exact')}
+						<a
+							href={item.href}
+							title={item.name}
+							class="group flex flex-col items-center gap-1 rounded-2xl px-2 py-2 text-center transition-colors"
+							class:bg-[var(--pi-primary)]={active}
+							class:text-white={active}
+							class:hover:bg-[var(--pi-surface-2)]={!active}
+							class:text-gray-700={!active}
+						>
+							<span
+								class={`grid h-9 w-9 place-items-center rounded-2xl ${active ? 'bg-white/15' : ''}`}
+							>
+								<span
+									class={`flex h-5 w-5 items-center justify-center ${active ? 'text-white' : 'text-[var(--pi-muted)]'}`}
 								>
-									<span class="flex h-5 w-5 flex-shrink-0 items-center justify-center">
+									{@html iconMap[item.icon]}
+								</span>
+							</span>
+							<span class="text-[10px] leading-3 font-semibold">{item.name}</span>
+						</a>
+					{/each}
+
+					{#if clientItems.length > 0}
+						<div class="my-2 h-px w-full bg-[var(--pi-border)]" />
+						{#each clientItems as item (item.href)}
+							{@const active = isActiveHref(pathname, item.href, item.match || 'exact')}
+							<a
+								href={item.href}
+								title={item.name}
+								class="group flex flex-col items-center gap-1 rounded-2xl px-2 py-2 text-center transition-colors"
+								class:bg-[var(--pi-primary)]={active}
+								class:text-white={active}
+								class:hover:bg-[var(--pi-surface-2)]={!active}
+								class:text-gray-700={!active}
+							>
+								<span
+									class={`grid h-9 w-9 place-items-center rounded-2xl ${active ? 'bg-white/15' : ''}`}
+								>
+									<span
+										class={`flex h-5 w-5 items-center justify-center ${active ? 'text-white' : 'text-[var(--pi-muted)]'}`}
+									>
 										{@html iconMap[item.icon]}
 									</span>
-									<span class="font-medium whitespace-nowrap">{item.name}</span>
-								</a>
-							{/each}
-						</div>
-					</div>
-				{/each}
+								</span>
+								<span class="text-[10px] leading-3 font-semibold">{item.name}</span>
+							</a>
+						{/each}
+					{/if}
+				</div>
 			</nav>
 
-			<div class="border-t border-[#e0d5ca] p-6 text-xs text-[#404b77]">
-				<p>� 2026 IDHL Group</p>
+			<div class="mt-auto pb-2 text-center text-[10px] leading-3 text-[var(--pi-muted)]">
+				© {year}
 			</div>
 		</div>
 	</aside>
 
-	<!-- Main Content -->
-	<div
-		class="flex min-w-0 flex-1 flex-col transition-all duration-300"
-		style="margin-left: {mainMarginLeft}"
-	>
-		<!-- Top Bar -->
-		<header
-			class="fixed top-0 right-0 left-0 z-30 border-b border-[#3a4267] bg-[#404b77] shadow-sm"
-		>
-			<div class="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
-				<!-- Left: Brand Name -->
-				<div class="flex min-w-0 flex-1 items-center gap-4">
-					<h1 class="truncate text-2xl font-bold text-white">IDHL Intel</h1>
-					{#if title}
-						<div class="hidden truncate text-sm font-medium text-white/80 md:block">{title}</div>
-					{/if}
+	<div class="min-w-0 flex-1" style="margin-left: 5rem;">
+		<header class="sticky top-0 z-20 border-b border-[var(--pi-border)] bg-white/70 backdrop-blur">
+			<div class="flex items-center justify-between gap-4 px-6 py-4">
+				<div class="min-w-0">
+					<h1 class="truncate text-lg font-semibold text-gray-900">{title || 'Dashboard'}</h1>
 				</div>
 
-				<!-- Right: User Profile & Logout -->
-				<div class="relative">
-					<button
-						on:click|stopPropagation={toggleDropdown}
-						class="flex items-center gap-3 rounded-lg px-4 py-2 transition-colors duration-200 hover:bg-[#505c8f]"
-					>
-						<div class="text-right">
-							<p class="text-sm font-medium text-white">{userEmail}</p>
-							<p class="text-xs text-gray-200">Account status: {accountStatusLabel}</p>
-						</div>
-						<div
-							class="flex h-10 w-10 items-center justify-center rounded-full bg-white font-bold text-[#404b77]"
+				<div class="flex items-center gap-3">
+					<div class="relative">
+						<button
+							on:click|stopPropagation={toggleDropdown}
+							class="flex items-center gap-3 rounded-full border border-[var(--pi-border)] bg-white px-3 py-1.5 transition-colors hover:bg-[var(--pi-surface-2)]"
 						>
-							{userEmail.charAt(0).toUpperCase()}
-						</div>
-					</button>
-
-					<!-- Dropdown Menu -->
-					{#if isDropdownOpen}
-						<menu
-							class="absolute right-0 z-50 m-0 mt-2 w-48 list-none rounded-lg border border-gray-200 bg-white p-0 shadow-xl"
-							on:click|stopPropagation={() => {}}
-						>
-							<div class="border-b border-gray-200 p-4">
-								<p class="text-sm font-medium text-[#404b77]">{userEmail}</p>
-								<p class="mt-1 text-xs text-gray-500">Account status: {accountStatusLabel}</p>
+							<div class="hidden text-right sm:block">
+								<p class="text-xs font-semibold text-gray-900">{userEmail}</p>
 							</div>
-							<a
-								href="/login"
-								class="block w-full px-4 py-3 text-left text-sm font-medium text-red-600 transition-colors duration-200 hover:bg-red-50"
+							<div
+								class="grid h-8 w-8 place-items-center rounded-full bg-[var(--pi-primary)] text-sm font-semibold text-white"
 							>
-								Logout
-							</a>
-						</menu>
-					{/if}
+								{userEmail.charAt(0).toUpperCase()}
+							</div>
+						</button>
+
+						{#if isDropdownOpen}
+							<menu
+								class="absolute right-0 z-50 m-0 mt-2 w-56 list-none overflow-hidden rounded-xl border border-[var(--pi-border)] bg-white p-0 shadow-xl"
+								on:click|stopPropagation={() => {}}
+							>
+								<div class="border-b border-[var(--pi-border)] p-4">
+									<p class="text-sm font-semibold text-gray-900">{userEmail}</p>
+								</div>
+								<a
+									href="/login"
+									class="block w-full px-4 py-3 text-left text-sm font-semibold text-red-600 transition-colors hover:bg-red-50"
+								>
+									Sign out
+								</a>
+							</menu>
+						{/if}
+					</div>
 				</div>
 			</div>
 		</header>
 
-		<!-- Page Content -->
-		<main class="mt-16 min-w-0 flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
+		<main class="min-w-0 p-6">
 			<slot />
 		</main>
 	</div>
 </div>
-
-<style>
-	:global(body) {
-		margin: 0;
-		padding: 0;
-		font-family:
-			-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-		scrollbar-gutter: stable;
-	}
-</style>

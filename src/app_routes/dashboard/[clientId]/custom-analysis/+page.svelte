@@ -33,7 +33,9 @@
 	</div>
 
 	{#if graphs.length === 0}
-		<div class="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center text-sm text-gray-600">
+		<div
+			class="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center text-sm text-gray-600"
+		>
 			No custom graphs yet.
 		</div>
 	{:else}

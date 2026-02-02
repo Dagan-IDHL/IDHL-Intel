@@ -22,10 +22,7 @@ function asStringArray(value, limit = 8) {
 export async function POST({ request, fetch }) {
 	const apiKey = (env.OPENAI_API_KEY || '').trim();
 	if (!apiKey) {
-		return json(
-			{ error: 'OPENAI_API_KEY is not set on the server.' },
-			{ status: 500 }
-		);
+		return json({ error: 'OPENAI_API_KEY is not set on the server.' }, { status: 500 });
 	}
 
 	const model = String(env.OPENAI_MODEL || DEFAULT_MODEL).trim() || DEFAULT_MODEL;
@@ -78,11 +75,7 @@ export async function POST({ request, fetch }) {
 			{ role: 'system', content: system },
 			{
 				role: 'user',
-				content: [
-					`Question: ${question}`,
-					'Context (JSON):',
-					JSON.stringify(context)
-				].join('\n')
+				content: [`Question: ${question}`, 'Context (JSON):', JSON.stringify(context)].join('\n')
 			}
 		],
 		response_format: {
@@ -116,17 +109,13 @@ export async function POST({ request, fetch }) {
 	if (!res.ok) {
 		const errJson = safeJsonParse(raw);
 		const message =
-			errJson?.error?.message ||
-			errJson?.message ||
-			`OpenAI request failed (${res.status})`;
+			errJson?.error?.message || errJson?.message || `OpenAI request failed (${res.status})`;
 		return json({ error: message }, { status: 502 });
 	}
 
 	const data = safeJsonParse(raw);
 	const content =
-		data?.choices?.[0]?.message?.content ??
-		data?.choices?.[0]?.message?.refusal ??
-		'';
+		data?.choices?.[0]?.message?.content ?? data?.choices?.[0]?.message?.refusal ?? '';
 	const parsed = safeJsonParse(content);
 
 	if (!parsed) {

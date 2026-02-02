@@ -34,4 +34,3 @@ export function normalizeMetricId(raw) {
 
 	return v;
 }
-

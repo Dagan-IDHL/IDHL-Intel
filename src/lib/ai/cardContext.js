@@ -84,4 +84,3 @@ export const CARD_CONTEXT_VERSION = 1;
  *
  * @typedef {TimeSeriesCardContext|BrandSplitCardContext|BreakdownCardContext} CardContext
  */
-

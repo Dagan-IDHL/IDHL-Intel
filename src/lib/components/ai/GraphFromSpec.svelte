@@ -20,6 +20,31 @@
 	let splitData = null;
 	let multiSeries = null;
 
+	const iconByMetric = {
+		sessions: 'activity',
+		engagedSessions: 'activity',
+		bounceRate: 'trendDown',
+		clicks: 'click',
+		impressions: 'eye',
+		ctr: 'percent',
+		purchases: 'cart',
+		revenue: 'dollar',
+		averagePurchaseValue: 'dollar'
+	};
+
+	function iconForSpec(next) {
+		if (!next) return '';
+		if (next.kind === 'kpi_split') return 'percent';
+		if (next.kind === 'multi_time_series') return 'activity';
+		if (next.kind === 'breakdown') {
+			if (next.dimension === 'page') return 'file';
+			if (next.dimension === 'query') return 'search';
+			if (next.dimension === 'source') return 'users';
+			return 'users';
+		}
+		return iconByMetric[next.metric] || 'activity';
+	}
+
 	function sumPoints(points) {
 		if (!Array.isArray(points)) return 0;
 		return points.reduce((s, p) => s + (Number(p?.value) || 0), 0);
@@ -31,26 +56,36 @@
 
 	function buildPieOption({ title, seriesName, slices }) {
 		const items = (slices || []).map((s) => ({ name: s.name, value: Number(s.value) || 0 }));
-		const legendVertical = items.length > 4;
-
 		return {
-			color: ['#404b77', '#9aa4c7', '#d7c9b8', '#7b8bbf', '#b9c0db', '#e7dfd8'],
-			tooltip: { trigger: 'item' },
-			legend: legendVertical
-				? { orient: 'vertical', left: 0, top: 'middle', itemGap: 10 }
-				: { bottom: 0, left: 'center', itemGap: 10 },
+			color: ['#2430A6', '#08B4C6', '#7B61FF', '#9EA7FF', '#98A2B3', '#D0D5DD'],
+			tooltip: {
+				trigger: 'item',
+				backgroundColor: '#ffffff',
+				borderColor: '#D0D5DD',
+				borderWidth: 1,
+				textStyle: { color: '#101828' }
+			},
+			legend: {
+				orient: 'vertical',
+				left: 0,
+				top: 'middle',
+				itemGap: 10,
+				textStyle: { color: '#667085', fontSize: 11 }
+			},
 			series: [
 				{
 					name: seriesName || title || '',
 					type: 'pie',
-					radius: ['42%', '70%'],
-					center: legendVertical ? ['70%', '45%'] : ['50%', '45%'],
+					radius: ['45%', '74%'],
+					center: ['72%', '50%'],
 					avoidLabelOverlap: true,
 					label: {
 						show: true,
+						color: '#344054',
+						fontSize: 11,
 						formatter: (p) => `${p.name}: ${formatNumber(p.value)} (${p.percent}%)`
 					},
-					labelLine: { length: 14, length2: 10 },
+					labelLine: { length: 16, length2: 12 },
 					emphasis: { label: { show: true, fontWeight: 'bold' } },
 					data: items
 				}
@@ -65,17 +100,23 @@
 		const twoAxes = (series || []).length === 2;
 		const yAxis = twoAxes
 			? [
-					{ type: 'value', name: series[0]?.name || '', axisLabel: { color: '#6b7280' } },
-					{ type: 'value', name: series[1]?.name || '', axisLabel: { color: '#6b7280' } }
+					{ type: 'value', name: series[0]?.name || '', axisLabel: { color: '#667085' } },
+					{ type: 'value', name: series[1]?.name || '', axisLabel: { color: '#667085' } }
 				]
-			: [{ type: 'value', axisLabel: { color: '#6b7280' } }];
+			: [{ type: 'value', axisLabel: { color: '#667085' } }];
 
 		return {
-			color: ['#404b77', '#9aa4c7', '#d7c9b8', '#7b8bbf'],
-			tooltip: { trigger: 'axis' },
-			legend: { top: 0, left: 'center', data: names },
+			color: ['#2430A6', '#08B4C6', '#7B61FF', '#9EA7FF'],
+			tooltip: {
+				trigger: 'axis',
+				backgroundColor: '#ffffff',
+				borderColor: '#D0D5DD',
+				borderWidth: 1,
+				textStyle: { color: '#101828' }
+			},
+			legend: { top: 0, left: 'center', data: names, textStyle: { color: '#667085' } },
 			grid: { top: 40, left: 50, right: twoAxes ? 55 : 20, bottom: 20, containLabel: true },
-			xAxis: { type: 'category', data: dates, axisLabel: { color: '#6b7280' } },
+			xAxis: { type: 'category', data: dates, axisLabel: { color: '#667085' } },
 			yAxis,
 			series: (series || []).map((s, idx) => ({
 				name: s.name,
@@ -115,7 +156,10 @@
 
 			if (spec.kind === 'kpi_split') {
 				const metrics = Array.isArray(spec.metrics)
-					? spec.metrics.map((m) => normalizeMetricId(m)).filter(Boolean).slice(0, 4)
+					? spec.metrics
+							.map((m) => normalizeMetricId(m))
+							.filter(Boolean)
+							.slice(0, 4)
 					: [];
 				if (metrics.length < 2) throw new Error('kpi_split requires `metrics` (2+ metric ids)');
 
@@ -143,9 +187,13 @@
 
 			if (spec.kind === 'multi_time_series') {
 				const metrics = Array.isArray(spec.metrics)
-					? spec.metrics.map((m) => normalizeMetricId(m)).filter(Boolean).slice(0, 4)
+					? spec.metrics
+							.map((m) => normalizeMetricId(m))
+							.filter(Boolean)
+							.slice(0, 4)
 					: [];
-				if (metrics.length < 2) throw new Error('multi_time_series requires `metrics` (2+ metric ids)');
+				if (metrics.length < 2)
+					throw new Error('multi_time_series requires `metrics` (2+ metric ids)');
 
 				const requests = metrics.map((metric) => {
 					const params = new URLSearchParams({
@@ -175,7 +223,12 @@
 			}
 
 			if (spec.kind === 'time_series') {
-				const params = new URLSearchParams({ clientId, metric: metricId, compareMode, granularity });
+				const params = new URLSearchParams({
+					clientId,
+					metric: metricId,
+					compareMode,
+					granularity
+				});
 				if (start) params.set('start', start);
 				if (end) params.set('end', end);
 				const res = await fetch(`/api/analytics/time-series?${params.toString()}`);
@@ -186,7 +239,12 @@
 			}
 
 			if (spec.kind === 'brand_split') {
-				const params = new URLSearchParams({ clientId, metric: metricId, compareMode, granularity });
+				const params = new URLSearchParams({
+					clientId,
+					metric: metricId,
+					compareMode,
+					granularity
+				});
 				if (start) params.set('start', start);
 				if (end) params.set('end', end);
 				const res = await fetch(`/api/analytics/brand-split?${params.toString()}`);
@@ -226,15 +284,16 @@
 </script>
 
 <DashboardCard
+	icon={iconForSpec(spec)}
 	title={spec?.title || 'Custom graph'}
-	sourceLabel={spec?.kind === 'kpi_split' || spec?.kind === 'multi_time_series' ? '' : sourceLabelForMetric(spec?.metric)}
-	kpiValue={
-		spec?.kind === 'kpi_split' || spec?.kind === 'multi_time_series'
-			? ''
-			: data?.summary?.current != null
-				? formatMetricValue(spec.metric, data.summary.current)
-				: ''
-	}
+	sourceLabel={spec?.kind === 'kpi_split' || spec?.kind === 'multi_time_series'
+		? ''
+		: sourceLabelForMetric(spec?.metric)}
+	kpiValue={spec?.kind === 'kpi_split' || spec?.kind === 'multi_time_series'
+		? ''
+		: data?.summary?.current != null
+			? formatMetricValue(spec.metric, data.summary.current)
+			: ''}
 	compareMode={data?.compareMode || spec?.compareMode || 'off'}
 	deltaPct={data?.summary?.deltaPct ?? null}
 	{loading}
@@ -266,7 +325,10 @@
 			</div>
 		{:else}
 			<EChart
-				option={buildMultiLineOption({ title: spec?.title || 'Comparison', series: multiSeries || [] })}
+				option={buildMultiLineOption({
+					title: spec?.title || 'Comparison',
+					series: multiSeries || []
+				})}
 				height={300}
 			/>
 		{/if}
@@ -319,7 +381,11 @@
 			<DataTable
 				columns={[
 					{ key: 'key', label: String(spec.dimension || 'Key'), align: 'left' },
-					{ key: 'valueLabel', label: METRIC_META?.[spec.metric]?.label || spec.metric, align: 'right' }
+					{
+						key: 'valueLabel',
+						label: METRIC_META?.[spec.metric]?.label || spec.metric,
+						align: 'right'
+					}
 				]}
 				rows={(data?.current?.rows || []).map((r) => ({
 					key: r.key,
@@ -331,10 +397,12 @@
 				option={buildPieOption({
 					title: spec?.title || 'Breakdown',
 					seriesName: String(spec.dimension || 'Breakdown'),
-					slices: (data?.current?.rows || []).slice(0, Math.min(10, Number(spec?.limit) || 10)).map((r) => ({
-						name: r.key,
-						value: r.value
-					}))
+					slices: (data?.current?.rows || [])
+						.slice(0, Math.min(10, Number(spec?.limit) || 10))
+						.map((r) => ({
+							name: r.key,
+							value: r.value
+						}))
 				})}
 				height={320}
 			/>

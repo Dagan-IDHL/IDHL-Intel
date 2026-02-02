@@ -44,15 +44,21 @@
 <div class="client-selector-dropdown">
 	<button
 		on:click={toggleDropdown}
-		class="flex h-14 w-full items-center gap-3 rounded-lg px-4 py-3 transition-colors hover:bg-[#e0d5ca]"
+		class={`flex h-14 w-full items-center gap-3 rounded-xl border border-[var(--pi-border)] bg-[var(--pi-surface-2)] px-4 py-3 text-left transition-colors hover:bg-white ${
+			isCollapsed ? 'justify-center px-0' : ''
+		}`}
 		title={selectedProject ? selectedProject.clientName : 'Select a project'}
 	>
-		<div class="h-6 w-6 flex-shrink-0 rounded bg-gray-300"></div>
+		<div
+			class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-[var(--pi-primary)] to-[var(--pi-primary-2)] text-[11px] font-semibold text-white"
+		>
+			{selectedProject?.clientName?.slice(0, 1)?.toUpperCase() || 'C'}
+		</div>
 
 		{#if !isCollapsed && selectedProject}
 			<div class="min-w-0 flex-1 text-left">
-				<div class="truncate text-sm font-medium text-gray-800">{selectedProject.clientName}</div>
-				<div class="truncate text-xs text-gray-500">{selectedProject.url}</div>
+				<div class="truncate text-sm font-semibold text-gray-900">{selectedProject.clientName}</div>
+				<div class="truncate text-xs text-[var(--pi-muted)]">{selectedProject.url}</div>
 			</div>
 		{/if}
 
@@ -75,9 +81,11 @@
 		{/if}
 	</button>
 
-	{#if isOpen && !isCollapsed}
+	{#if isOpen}
 		<div
-			class="absolute top-full right-0 left-0 z-50 mt-2 rounded-lg border border-gray-200 bg-white shadow-xl"
+			class={`absolute z-50 mt-2 overflow-hidden rounded-xl border border-[var(--pi-border)] bg-white shadow-xl ${
+				isCollapsed ? 'top-0 left-full ml-2 w-72' : 'top-full right-0 left-0'
+			}`}
 			role="listbox"
 			on:click|stopPropagation={() => {}}
 		>
@@ -85,20 +93,24 @@
 				{#each projects as project (project.id)}
 					<button
 						on:click={() => selectProject(project)}
-						class="flex w-full items-center gap-3 border-b border-gray-100 px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-[#f2e9e4]"
+						class="flex w-full items-center gap-3 border-b border-gray-100 px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-[var(--pi-surface-2)]"
 						role="option"
 						aria-selected={selectedProject?.id === project.id}
 					>
-						<div class="h-6 w-6 flex-shrink-0 rounded bg-gray-300"></div>
+						<div
+							class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-[var(--pi-primary)] to-[var(--pi-primary-2)] text-[11px] font-semibold text-white"
+						>
+							{project?.clientName?.slice(0, 1)?.toUpperCase() || 'C'}
+						</div>
 
 						<div class="min-w-0 flex-1">
-							<div class="truncate text-sm font-medium text-gray-800">{project.clientName}</div>
-							<div class="truncate text-xs text-gray-500">{project.url}</div>
+							<div class="truncate text-sm font-semibold text-gray-900">{project.clientName}</div>
+							<div class="truncate text-xs text-[var(--pi-muted)]">{project.url}</div>
 						</div>
 
 						{#if selectedProject?.id === project.id}
 							<svg
-								class="h-5 w-5 flex-shrink-0 text-[#404b77]"
+								class="h-5 w-5 flex-shrink-0 text-[var(--pi-primary)]"
 								xmlns="http://www.w3.org/2000/svg"
 								width="20"
 								height="20"
@@ -118,7 +130,7 @@
 
 			<button
 				type="button"
-				class="flex w-full items-center gap-3 border-t border-gray-200 px-4 py-3 text-sm font-medium text-[#404b77] transition-colors hover:bg-[#f2e9e4]"
+				class="flex w-full items-center gap-3 border-t border-gray-200 px-4 py-3 text-sm font-semibold text-[var(--pi-primary)] transition-colors hover:bg-[var(--pi-surface-2)]"
 				on:click={() => goto('/dashboard/clients/new')}
 			>
 				<svg
@@ -145,6 +157,7 @@
 <style>
 	.client-selector-dropdown {
 		position: relative;
-		border-bottom: 1px solid #e0d5ca;
+		padding-bottom: 0.75rem;
+		border-bottom: 1px solid var(--pi-border);
 	}
 </style>

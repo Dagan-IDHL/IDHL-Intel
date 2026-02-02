@@ -23,12 +23,12 @@
 <div class="space-y-4">
 	<div class="flex flex-wrap items-center justify-between gap-3">
 		<div class="min-w-0">
-			<div class="text-xs font-semibold tracking-wide text-gray-500 uppercase">Client</div>
+			<div class="text-xs font-semibold tracking-wide text-[var(--pi-muted)] uppercase">Client</div>
 			<div class="mt-1 truncate text-lg font-semibold text-gray-900">
 				{client?.clientName || clientId}
 			</div>
 			{#if client?.url}
-				<div class="truncate text-sm text-gray-600">{client.url}</div>
+				<div class="truncate text-sm text-[var(--pi-muted)]">{client.url}</div>
 			{/if}
 		</div>
 
@@ -36,14 +36,14 @@
 			{#each tabs as tab (tab.href)}
 				<a
 					href={tab.href}
-					class="rounded-lg px-4 py-2 text-sm font-semibold transition-colors"
-					class:bg-[#404b77]={isActive(tab.href)}
+					class="rounded-xl px-4 py-2 text-sm font-semibold transition-colors"
+					class:bg-[var(--pi-primary)]={isActive(tab.href)}
 					class:text-white={isActive(tab.href)}
 					class:text-gray-700={!isActive(tab.href)}
 					class:border={!isActive(tab.href)}
-					class:border-gray-200={!isActive(tab.href)}
+					class:border-[var(--pi-border)]={!isActive(tab.href)}
 					class:bg-white={!isActive(tab.href)}
-					class:hover:bg-gray-50={!isActive(tab.href)}
+					class:hover:bg-[var(--pi-surface-2)]={!isActive(tab.href)}
 				>
 					{tab.name}
 				</a>

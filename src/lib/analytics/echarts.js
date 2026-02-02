@@ -1,5 +1,15 @@
 import { METRIC_META } from './constants.js';
 
+const PALETTE = {
+	primary: '#2430A6',
+	primarySoft: '#9EA7FF',
+	accent: '#08B4C6',
+	neutral: '#98A2B3',
+	grid: '#EAECF0',
+	axis: '#D0D5DD',
+	text: '#667085'
+};
+
 /**
  * @param {Object} args
  * @param {string} args.metric
@@ -30,13 +40,19 @@ export function buildTimeSeriesOption({
 	};
 
 	return {
-		grid: { left: 40, right: 18, top: 10, bottom: 30 },
-		tooltip: { trigger: 'axis' },
+		grid: { left: 44, right: 18, top: 10, bottom: 34, containLabel: true },
+		tooltip: {
+			trigger: 'axis',
+			backgroundColor: '#ffffff',
+			borderColor: PALETTE.axis,
+			borderWidth: 1,
+			textStyle: { color: '#101828' }
+		},
 		xAxis: {
 			type: 'category',
 			data: x,
 			axisLabel: {
-				color: '#6b7280',
+				color: PALETTE.text,
 				hideOverlap: true,
 				formatter: (v) => {
 					if (granularity === 'monthly' && typeof v === 'string') return v.slice(0, 7);
@@ -44,12 +60,12 @@ export function buildTimeSeriesOption({
 				}
 			},
 			axisTick: { show: false },
-			axisLine: { lineStyle: { color: '#e5e7eb' } }
+			axisLine: { lineStyle: { color: PALETTE.axis } }
 		},
 		yAxis: {
 			type: 'value',
-			axisLabel: { color: '#6b7280', formatter: formatYAxis },
-			splitLine: { lineStyle: { color: '#f3f4f6' } }
+			axisLabel: { color: PALETTE.text, formatter: formatYAxis },
+			splitLine: { lineStyle: { color: PALETTE.grid } }
 		},
 		series: [
 			{
@@ -58,8 +74,8 @@ export function buildTimeSeriesOption({
 				data: currentY,
 				smooth: true,
 				showSymbol: false,
-				lineStyle: { width: 3, color: '#404b77' },
-				areaStyle: { opacity: 0.08, color: '#404b77' }
+				lineStyle: { width: 3, color: PALETTE.primary },
+				areaStyle: { opacity: 0.1, color: PALETTE.primary }
 			},
 			...(hasCompare
 				? [
@@ -69,7 +85,7 @@ export function buildTimeSeriesOption({
 							data: compareY,
 							smooth: true,
 							showSymbol: false,
-							lineStyle: { width: 2, type: 'dashed', color: '#9ca3af' }
+							lineStyle: { width: 2, type: 'dashed', color: PALETTE.neutral }
 						}
 					]
 				: [])
@@ -91,21 +107,27 @@ export function buildStackedSplitOption({ metric, currentSegments, granularity =
 
 	const formatYAxis = (v) => {
 		if (unit === 'percent') return `${Math.round(v * 100)}%`;
-		if (unit === 'currency') return `Â£${Math.round(v).toLocaleString('en-GB')}`;
+		if (unit === 'currency') return `£${Math.round(v).toLocaleString('en-GB')}`;
 		return Math.round(v).toLocaleString('en-GB');
 	};
 
-	const palette = ['#404b77', '#9aa3c5', '#c7cbe0'];
+	const palette = [PALETTE.primary, PALETTE.accent, PALETTE.primarySoft, '#7B61FF'];
 
 	return {
-		grid: { left: 44, right: 18, top: 10, bottom: 30 },
-		tooltip: { trigger: 'axis' },
-		legend: { top: 0, left: 0, textStyle: { color: '#6b7280', fontSize: 11 } },
+		grid: { left: 44, right: 18, top: 10, bottom: 34, containLabel: true },
+		tooltip: {
+			trigger: 'axis',
+			backgroundColor: '#ffffff',
+			borderColor: PALETTE.axis,
+			borderWidth: 1,
+			textStyle: { color: '#101828' }
+		},
+		legend: { top: 0, left: 0, textStyle: { color: PALETTE.text, fontSize: 11 } },
 		xAxis: {
 			type: 'category',
 			data: x,
 			axisLabel: {
-				color: '#6b7280',
+				color: PALETTE.text,
 				hideOverlap: true,
 				formatter: (v) => {
 					if (granularity === 'monthly' && typeof v === 'string') return v.slice(0, 7);
@@ -113,12 +135,12 @@ export function buildStackedSplitOption({ metric, currentSegments, granularity =
 				}
 			},
 			axisTick: { show: false },
-			axisLine: { lineStyle: { color: '#e5e7eb' } }
+			axisLine: { lineStyle: { color: PALETTE.axis } }
 		},
 		yAxis: {
 			type: 'value',
-			axisLabel: { color: '#6b7280', formatter: formatYAxis },
-			splitLine: { lineStyle: { color: '#f3f4f6' } }
+			axisLabel: { color: PALETTE.text, formatter: formatYAxis },
+			splitLine: { lineStyle: { color: PALETTE.grid } }
 		},
 		series: (currentSegments || []).map((seg, idx) => ({
 			name: seg.label,
@@ -127,7 +149,7 @@ export function buildStackedSplitOption({ metric, currentSegments, granularity =
 			smooth: true,
 			showSymbol: false,
 			lineStyle: { width: 2, color: palette[idx % palette.length] },
-			areaStyle: { opacity: 0.14, color: palette[idx % palette.length] },
+			areaStyle: { opacity: 0.16, color: palette[idx % palette.length] },
 			data: (seg.points || []).map((p) => p.value)
 		}))
 	};
@@ -147,30 +169,37 @@ export function buildHorizontalBarOption({ metric, rows }) {
 
 	const formatXAxis = (v) => {
 		if (unit === 'percent') return `${Math.round(v * 100)}%`;
-		if (unit === 'currency') return `Â£${Math.round(v).toLocaleString('en-GB')}`;
+		if (unit === 'currency') return `£${Math.round(v).toLocaleString('en-GB')}`;
 		return Math.round(v).toLocaleString('en-GB');
 	};
 
 	return {
 		grid: { left: 10, right: 18, top: 10, bottom: 10, containLabel: true },
-		tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+		tooltip: {
+			trigger: 'axis',
+			axisPointer: { type: 'shadow' },
+			backgroundColor: '#ffffff',
+			borderColor: PALETTE.axis,
+			borderWidth: 1,
+			textStyle: { color: '#101828' }
+		},
 		xAxis: {
 			type: 'value',
-			axisLabel: { color: '#6b7280', formatter: formatXAxis },
-			splitLine: { lineStyle: { color: '#f3f4f6' } }
+			axisLabel: { color: PALETTE.text, formatter: formatXAxis },
+			splitLine: { lineStyle: { color: PALETTE.grid } }
 		},
 		yAxis: {
 			type: 'category',
 			data: categories,
-			axisLabel: { color: '#6b7280', width: 140, overflow: 'truncate' },
+			axisLabel: { color: PALETTE.text, width: 140, overflow: 'truncate' },
 			axisTick: { show: false },
-			axisLine: { lineStyle: { color: '#e5e7eb' } }
+			axisLine: { lineStyle: { color: PALETTE.axis } }
 		},
 		series: [
 			{
 				type: 'bar',
 				data: values,
-				itemStyle: { color: '#404b77' },
+				itemStyle: { color: PALETTE.primary },
 				barWidth: 14,
 				borderRadius: [6, 6, 6, 6]
 			}

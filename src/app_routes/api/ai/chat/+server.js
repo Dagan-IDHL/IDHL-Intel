@@ -25,10 +25,15 @@ function normalizeMetricMention(text) {
 	/** @type {string[]} */
 	const metrics = [];
 
-	if (t.includes('average purchase value') || t.includes('avg purchase value') || t.includes('aov')) {
+	if (
+		t.includes('average purchase value') ||
+		t.includes('avg purchase value') ||
+		t.includes('aov')
+	) {
 		metrics.push('averagePurchaseValue');
 	}
-	if (t.includes('engaged sessions') || t.includes('engagedsession')) metrics.push('engagedSessions');
+	if (t.includes('engaged sessions') || t.includes('engagedsession'))
+		metrics.push('engagedSessions');
 	if (t.includes('sessions')) metrics.push('sessions');
 	if (t.includes('clicks')) metrics.push('clicks');
 	if (t.includes('impressions')) metrics.push('impressions');
@@ -58,7 +63,8 @@ export async function POST({ request, fetch }) {
 	const context = body?.context || null;
 
 	if (messages.length === 0) return json({ error: 'messages is required' }, { status: 400 });
-	if (!context || typeof context !== 'object') return json({ error: 'context is required' }, { status: 400 });
+	if (!context || typeof context !== 'object')
+		return json({ error: 'context is required' }, { status: 400 });
 
 	const lastUserMessage = [...messages]
 		.reverse()
@@ -85,7 +91,10 @@ export async function POST({ request, fetch }) {
 		additionalProperties: false,
 		properties: {
 			version: { type: 'integer', enum: [1] },
-			kind: { type: 'string', enum: ['time_series', 'brand_split', 'breakdown', 'kpi_split', 'multi_time_series'] },
+			kind: {
+				type: 'string',
+				enum: ['time_series', 'brand_split', 'breakdown', 'kpi_split', 'multi_time_series']
+			},
 			title: { type: 'string', maxLength: 60 },
 			metric: { type: 'string', maxLength: 32 },
 			metrics: {
@@ -138,7 +147,11 @@ export async function POST({ request, fetch }) {
 		properties: {
 			mode: { type: 'string', enum: ['answer', 'clarify', 'graph'] },
 			answer: { type: 'string', maxLength: 900 },
-			clarifyingQuestions: { type: 'array', maxItems: 2, items: { type: 'string', maxLength: 140 } },
+			clarifyingQuestions: {
+				type: 'array',
+				maxItems: 2,
+				items: { type: 'string', maxLength: 140 }
+			},
 			graphSpec: { anyOf: [{ type: 'null' }, graphSpecSchema] }
 		},
 		required: ['mode', 'answer', 'clarifyingQuestions', 'graphSpec']
@@ -178,7 +191,10 @@ export async function POST({ request, fetch }) {
 			body: JSON.stringify(payload)
 		});
 	} catch (e) {
-		return json({ error: `Failed to reach OpenAI: ${e?.message || 'fetch failed'}` }, { status: 502 });
+		return json(
+			{ error: `Failed to reach OpenAI: ${e?.message || 'fetch failed'}` },
+			{ status: 502 }
+		);
 	}
 
 	const raw = await res.text();
@@ -190,9 +206,11 @@ export async function POST({ request, fetch }) {
 	}
 
 	const data = safeJsonParse(raw);
-	const content = data?.choices?.[0]?.message?.content ?? data?.choices?.[0]?.message?.refusal ?? '';
+	const content =
+		data?.choices?.[0]?.message?.content ?? data?.choices?.[0]?.message?.refusal ?? '';
 	const parsed = safeJsonParse(content);
-	if (!parsed) return json({ error: 'AI response was not valid JSON.', raw: content }, { status: 502 });
+	if (!parsed)
+		return json({ error: 'AI response was not valid JSON.', raw: content }, { status: 502 });
 
 	/** @type {any} */
 	let graphSpec = parsed.graphSpec || null;
@@ -222,8 +240,7 @@ export async function POST({ request, fetch }) {
 			String(graphSpec.chartType || '').toLowerCase() === 'pie' ||
 			/\bpie\b|\bdonut\b/i.test(lastUserText);
 		const wantsLine =
-			String(graphSpec.chartType || '').toLowerCase() === 'line' ||
-			/\bline\b/i.test(lastUserText);
+			String(graphSpec.chartType || '').toLowerCase() === 'line' || /\bline\b/i.test(lastUserText);
 
 		// Ensure `metrics` is present for strict schemas.
 		if (graphSpec.metrics === undefined) graphSpec.metrics = null;

@@ -9,23 +9,15 @@
 		const path = $page.url.pathname;
 		return path === '/dashboard'
 			? 'Dashboard'
-			: path.includes('/charts-preview')
-				? 'Charts Preview'
-				: path.includes('/analytics-preview')
-					? 'Analytics Preview'
-					: path.includes('/custom-analysis')
-						? 'Custom Analysis'
-						: path.includes('/report')
-							? 'Report'
-							: path.includes('/data')
-								? 'Data'
-								: path.includes('/da-band-gap')
-									? 'DA Band Gap'
-									: path.includes('/clients')
-										? 'Clients'
-										: path.includes('/usage')
-											? 'Usage'
-											: 'Dashboard';
+			: path.includes('/custom-analysis')
+				? 'Custom Analysis'
+				: path.includes('/report')
+					? 'Report'
+					: path.includes('/data')
+						? 'Data'
+						: path.includes('/clients')
+							? 'Clients'
+							: 'Dashboard';
 	});
 </script>
 

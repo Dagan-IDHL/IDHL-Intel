@@ -21,19 +21,19 @@
 	}
 </script>
 
-<div class="min-h-screen bg-gray-50 text-gray-900">
+<div class="min-h-screen text-gray-900">
 	<div class="flex">
-		<aside class="min-h-screen w-64 border-r border-black/5 bg-[#f2e9e4]">
+		<aside class="min-h-screen w-72 border-r border-[var(--pi-border)] bg-white">
 			<div class="px-6 pt-7">
 				<div class="flex items-center gap-3">
 					<div
-						class="grid h-10 w-10 place-items-center rounded-xl bg-[#404b77] text-white shadow-sm"
+						class="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-[var(--pi-primary)] via-[var(--pi-primary-2)] to-[var(--pi-accent)] text-white shadow-sm"
 					>
-						<span class="text-sm font-semibold">IN</span>
+						<span class="text-sm font-semibold">PI</span>
 					</div>
 					<div class="min-w-0">
-						<div class="truncate text-sm font-semibold text-[#404b77]">IDHL Intel</div>
-						<div class="truncate text-xs text-gray-600">Intel</div>
+						<div class="truncate text-sm font-semibold text-gray-900">Pulse Insight</div>
+						<div class="truncate text-xs text-[var(--pi-muted)]">Reporting Suite</div>
 					</div>
 				</div>
 			</div>
@@ -54,8 +54,8 @@
 									: 'text-gray-700'}"
 							>
 								<span
-									class="h-5 w-5 shrink-0 group-hover:text-[#404b77]"
-									class:text-[#404b77]={isActive(item.href)}
+									class="h-5 w-5 shrink-0 group-hover:text-[var(--pi-primary)]"
+									class:text-[var(--pi-primary)]={isActive(item.href)}
 									class:text-gray-600={!isActive(item.href)}
 								>
 									{@html iconForHref(item.href)}
@@ -66,12 +66,12 @@
 					{/each}
 				</ul>
 
-				<div class="mt-8 rounded-xl border border-black/10 bg-white/50 p-4">
+				<div class="mt-8 rounded-xl border border-[var(--pi-border)] bg-[var(--pi-surface-2)] p-4">
 					<div class="text-xs font-semibold text-gray-800">Quick actions</div>
 					<div class="mt-2 space-y-2">
 						<a
 							href="/dashboard/projects"
-							class="block rounded-lg bg-[#404b77] px-3 py-2 text-center text-xs font-semibold text-white hover:bg-[#505c8f]"
+							class="block rounded-lg bg-[var(--pi-primary)] px-3 py-2 text-center text-xs font-semibold text-white hover:bg-[color-mix(in_oklch,var(--pi-primary)_92%,black)]"
 							>Create project</a
 						>
 						<a
@@ -89,7 +89,7 @@
 				<div class="flex items-center justify-between gap-4 px-6 py-4">
 					<div class="min-w-0">
 						<div class="truncate text-xs font-semibold tracking-wide text-gray-500 uppercase">
-							IDHL Intel
+							Pulse Insight
 						</div>
 						<h1 class="truncate text-lg font-semibold text-gray-900">{title}</h1>
 					</div>
@@ -104,7 +104,7 @@
 							class="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1.5"
 						>
 							<div
-								class="grid h-7 w-7 place-items-center rounded-full bg-[#404b77] text-xs font-semibold text-white"
+								class="grid h-7 w-7 place-items-center rounded-full bg-[var(--pi-primary)] text-xs font-semibold text-white"
 							>
 								U
 							</div>

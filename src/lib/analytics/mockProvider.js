@@ -486,7 +486,14 @@ export function getMockBreakdown({ clientId, metric, dimension, range, compareMo
 		compareMode,
 		compareRange,
 		current: { metric, dimension, source, range, rows, total: currentTotal },
-		compare: { metric, dimension, source, range: compareRange, rows: compareRows, total: compareTotal },
+		compare: {
+			metric,
+			dimension,
+			source,
+			range: compareRange,
+			rows: compareRows,
+			total: compareTotal
+		},
 		summary: { current: currentTotal, compare: compareTotal, deltaAbs, deltaPct }
 	};
 }

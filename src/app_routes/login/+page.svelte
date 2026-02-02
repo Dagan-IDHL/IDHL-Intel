@@ -1,4 +1,4 @@
-<script>
+﻿<script>
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
@@ -55,46 +55,116 @@
 </script>
 
 <svelte:head>
-	<title>Login</title>
+	<title>Pulse Insight — Login</title>
 </svelte:head>
 
-<div
-	class="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#404b77] via-[#505c8f] to-[#3a4267] p-4"
->
-	<!-- Left side - Branding section (hidden on mobile) -->
-	<div class="hidden flex-col items-center justify-center px-8 text-white lg:flex lg:w-1/2">
-		<div class="text-center">
-			<h1 class="mb-4 text-5xl font-bold">IDHL Intel</h1>
-			<p class="text-xl opacity-90">Digital Marketing Suite</p>
-		</div>
-	</div>
-
-	<!-- Right side - Login form -->
-	<div class="flex w-full items-center justify-center lg:w-1/2">
-		<div class="w-full max-w-md">
-			<div class="rounded-2xl bg-white p-8 shadow-2xl lg:p-10">
-				<!-- Logo for mobile -->
-				<div class="mb-8 text-center lg:hidden">
-					<h1 class="mb-2 text-3xl font-bold text-[#404b77]">IDHL Intel</h1>
-					<p class="text-sm text-gray-600">Digital Marketing Suite</p>
+<div class="grid min-h-screen grid-cols-1 lg:grid-cols-2">
+	<!-- Left: brand / marketing -->
+	<section class="relative hidden overflow-hidden border-r border-[var(--pi-border)] lg:block">
+		<div
+			class="absolute inset-0 bg-gradient-to-br from-[color-mix(in_oklch,var(--pi-primary)_22%,white)] via-[var(--pi-bg)] to-[color-mix(in_oklch,var(--pi-accent)_18%,white)]"
+		/>
+		<div class="relative flex h-full flex-col justify-between p-10">
+			<div>
+				<div class="flex items-center gap-3">
+					<div
+						class="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-[var(--pi-primary)] via-[var(--pi-primary-2)] to-[var(--pi-accent)] text-white shadow-sm"
+					>
+						<span class="text-sm font-semibold">PI</span>
+					</div>
+					<div>
+						<div class="text-sm font-semibold text-gray-900">Pulse Insight</div>
+						<div class="text-xs text-[var(--pi-muted)]">Marketing reporting suite</div>
+					</div>
 				</div>
 
-				<h2 class="mb-2 text-3xl font-bold text-gray-900">Welcome Back</h2>
-				<p class="mb-8 text-gray-600">Sign in with Microsoft to continue</p>
+				<h1 class="mt-10 text-4xl font-bold tracking-tight text-gray-900">
+					Beautiful reporting. Built for modern marketing teams.
+				</h1>
+				<p class="mt-3 max-w-xl text-sm leading-relaxed text-[var(--pi-muted)]">
+					Connect your sources, explore performance with AI, and generate client-ready reports — all
+					in one place.
+				</p>
+
+				<div class="mt-8 grid max-w-xl grid-cols-1 gap-3">
+					<div class="rounded-xl border border-[var(--pi-border)] bg-white/70 p-4">
+						<div class="text-sm font-semibold text-gray-900">Data</div>
+						<div class="mt-1 text-xs text-[var(--pi-muted)]">
+							Clean KPI cards, breakdown tables, and time series trends.
+						</div>
+					</div>
+					<div class="rounded-xl border border-[var(--pi-border)] bg-white/70 p-4">
+						<div class="text-sm font-semibold text-gray-900">Custom Analysis</div>
+						<div class="mt-1 text-xs text-[var(--pi-muted)]">
+							Ask questions, generate insights, and build custom charts.
+						</div>
+					</div>
+					<div class="rounded-xl border border-[var(--pi-border)] bg-white/70 p-4">
+						<div class="text-sm font-semibold text-gray-900">Reports</div>
+						<div class="mt-1 text-xs text-[var(--pi-muted)]">
+							Drag-and-drop report builder with resizable cards.
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="text-xs text-[var(--pi-muted)]">© {new Date().getFullYear()} IDHL Group</div>
+		</div>
+	</section>
+
+	<!-- Right: login -->
+	<section class="flex items-center justify-center px-6 py-12">
+		<div class="w-full max-w-md">
+			<div class="rounded-2xl border border-[var(--pi-border)] bg-white p-8 shadow-sm">
+				<div class="mb-7 flex items-center gap-3">
+					<div
+						class="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-br from-[var(--pi-primary)] via-[var(--pi-primary-2)] to-[var(--pi-accent)] text-white shadow-sm"
+					>
+						<span class="text-sm font-semibold">PI</span>
+					</div>
+					<div class="min-w-0">
+						<div class="truncate text-sm font-semibold text-gray-900">Pulse Insight</div>
+						<div class="truncate text-xs text-[var(--pi-muted)]">Sign in</div>
+					</div>
+				</div>
+
+				<h2 class="text-2xl font-bold text-gray-900">Welcome back</h2>
+				<p class="mt-1 text-sm text-[var(--pi-muted)]">
+					Continue with Microsoft to open your workspace.
+				</p>
 
 				<!-- Error Message -->
 				{#if error}
-					<div class="mb-6 flex gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
-						<span class="text-xl text-red-600">⚠️</span>
+					<div class="mt-6 flex gap-3 rounded-xl border border-red-200 bg-red-50 p-4">
+						<span class="mt-0.5 text-red-700">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="18"
+								height="18"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								aria-hidden="true"
+							>
+								<path d="M12 9v4" />
+								<path d="M12 17h.01" />
+								<path
+									d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+								/>
+							</svg>
+						</span>
 						<p class="text-sm text-red-700">{error}</p>
 					</div>
 				{/if}
 
-				<div class="space-y-6">
+				<div class="mt-7 space-y-5">
 					<!-- Microsoft Sign-In -->
 					<a
 						href="/api/auth/azure"
-						class="flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 px-4 py-3 font-semibold text-gray-900 transition-colors duration-200 hover:bg-gray-50"
+						class="flex w-full items-center justify-center gap-3 rounded-xl border border-[var(--pi-border)] bg-white px-4 py-3 font-semibold text-gray-900 transition-colors hover:bg-[var(--pi-surface-2)]"
 						aria-disabled={loading}
 						on:click={() => (loading = true)}
 					>
@@ -107,7 +177,16 @@
 							</svg>
 						</span>
 						{#if loading}
-							<span class="inline-block animate-spin">⏳</span>
+							<span class="inline-flex h-4 w-4 animate-spin">
+								<svg viewBox="0 0 24 24" aria-hidden="true" class="h-4 w-4">
+									<path
+										fill="currentColor"
+										opacity="0.25"
+										d="M12 2a10 10 0 1 0 10 10h-2a8 8 0 1 1-8-8V2z"
+									/>
+									<path fill="currentColor" d="M20 12a8 8 0 0 0-8-8V2a10 10 0 0 1 10 10h-2z" />
+								</svg>
+							</span>
 							Redirecting...
 						{:else}
 							Continue with Microsoft
@@ -117,7 +196,7 @@
 					{#if import.meta.env.DEV && !showLegacyLogin}
 						<button
 							type="button"
-							class="w-full text-xs font-medium text-[#404b77] hover:underline"
+							class="w-full text-xs font-semibold text-[var(--pi-primary)] hover:underline"
 							on:click={() => (showLegacyLogin = true)}
 						>
 							Use legacy email/password login
@@ -146,7 +225,7 @@
 									bind:value={email}
 									on:keydown={handleKeyDown}
 									placeholder="you@example.com"
-									class="w-full rounded-lg border border-gray-300 px-4 py-3 transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-[#404b77] focus:outline-none"
+									class="w-full rounded-xl border border-[var(--pi-border)] bg-white px-4 py-3 transition-all focus:border-transparent focus:ring-2 focus:ring-[var(--pi-focus)] focus:outline-none"
 									disabled={loading}
 									required
 								/>
@@ -163,7 +242,7 @@
 									bind:value={password}
 									on:keydown={handleKeyDown}
 									placeholder="••••••••"
-									class="w-full rounded-lg border border-gray-300 px-4 py-3 transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-[#404b77] focus:outline-none"
+									class="w-full rounded-xl border border-[var(--pi-border)] bg-white px-4 py-3 transition-all focus:border-transparent focus:ring-2 focus:ring-[var(--pi-focus)] focus:outline-none"
 									disabled={loading}
 									required
 								/>
@@ -173,10 +252,19 @@
 							<button
 								type="submit"
 								disabled={loading || !email || !password}
-								class="flex w-full items-center justify-center gap-2 rounded-lg bg-[#404b77] px-4 py-3 font-bold text-white transition-colors duration-200 hover:bg-[#505c8f] disabled:cursor-not-allowed disabled:opacity-50"
+								class="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--pi-primary)] px-4 py-3 font-bold text-white shadow-sm transition-colors hover:bg-[color-mix(in_oklch,var(--pi-primary)_92%,black)] disabled:cursor-not-allowed disabled:opacity-50"
 							>
 								{#if loading}
-									<span class="inline-block animate-spin">⏳</span>
+									<span class="inline-flex h-4 w-4 animate-spin">
+										<svg viewBox="0 0 24 24" aria-hidden="true" class="h-4 w-4">
+											<path
+												fill="currentColor"
+												opacity="0.25"
+												d="M12 2a10 10 0 1 0 10 10h-2a8 8 0 1 1-8-8V2z"
+											/>
+											<path fill="currentColor" d="M20 12a8 8 0 0 0-8-8V2a10 10 0 0 1 10 10h-2z" />
+										</svg>
+									</span>
 									Signing in...
 								{:else}
 									Sign In
@@ -186,127 +274,6 @@
 					</div>
 				{/if}
 			</div>
-
-			<!-- Footer -->
-			<div class="mt-8 text-center text-sm text-white opacity-75">
-				<p>© 2026 IDHL Group. All rights reserved.</p>
-			</div>
 		</div>
-	</div>
+	</section>
 </div>
-
-{#if false}
-	<!-- Old Intel login UI kept for reference -->
-
-	<div
-		class="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#404b77] via-[#505c8f] to-[#3a4267] p-4"
-	>
-		<div class="w-full max-w-5xl overflow-hidden rounded-2xl bg-white shadow-2xl">
-			<div class="grid grid-cols-1 lg:grid-cols-2">
-				<!-- Branding -->
-				<div class="hidden flex-col justify-between bg-[#404b77] p-10 text-white lg:flex">
-					<div>
-						<div class="flex items-center gap-3">
-							<div class="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-white">
-								<span class="text-sm font-semibold">SK</span>
-							</div>
-							<div class="text-sm font-semibold">IDHL Intel</div>
-						</div>
-						<h1 class="mt-10 text-4xl leading-tight font-bold">Intel workspace</h1>
-						<p class="mt-3 text-sm text-white/85">
-							A lightweight UI shell for Sidekick-style pages. No functionality wired up yet.
-						</p>
-					</div>
-					<div class="text-xs text-white/70">© {new Date().getFullYear()} IDHL Group</div>
-				</div>
-
-				<!-- Form -->
-				<div class="p-8 sm:p-10">
-					<div class="lg:hidden">
-						<div class="text-sm font-semibold text-[#404b77]">IDHL Intel</div>
-						<div class="mt-1 text-xs text-gray-600">Intel</div>
-					</div>
-
-					<h2 class="mt-6 text-3xl font-bold text-gray-900">Welcome back</h2>
-					<p class="mt-2 text-sm text-gray-600">Sign in to access your dashboard.</p>
-
-					<div class="mt-8 space-y-6">
-						<button
-							type="button"
-							class="flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-semibold text-gray-900 hover:bg-gray-50"
-						>
-							<span class="inline-flex h-5 w-5 items-center justify-center">
-								<svg viewBox="0 0 23 23" aria-hidden="true" class="h-5 w-5">
-									<path fill="#f25022" d="M1 1h10v10H1z" />
-									<path fill="#7fba00" d="M12 1h10v10H12z" />
-									<path fill="#00a4ef" d="M1 12h10v10H1z" />
-									<path fill="#ffb900" d="M12 12h10v10H12z" />
-								</svg>
-							</span>
-							Continue with Microsoft
-						</button>
-
-						<div class="flex items-center gap-3">
-							<div class="h-px flex-1 bg-gray-200"></div>
-							<span class="text-xs font-semibold text-gray-500">OR</span>
-							<div class="h-px flex-1 bg-gray-200"></div>
-						</div>
-
-						<form class="space-y-5">
-							<div>
-								<label for="email" class="mb-2 block text-sm font-semibold text-gray-900"
-									>Email</label
-								>
-								<input
-									id="email"
-									type="email"
-									placeholder="you@idhl.ai"
-									class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:ring-2 focus:ring-[#404b77] focus:outline-none"
-								/>
-							</div>
-							<div>
-								<label for="password" class="mb-2 block text-sm font-semibold text-gray-900"
-									>Password</label
-								>
-								<input
-									id="password"
-									type="password"
-									placeholder="••••••••"
-									class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:ring-2 focus:ring-[#404b77] focus:outline-none"
-								/>
-							</div>
-
-							<a
-								href="/dashboard"
-								class="block w-full rounded-lg bg-[#404b77] px-4 py-3 text-center text-sm font-bold text-white hover:bg-[#505c8f]"
-								>Sign in</a
-							>
-						</form>
-
-						<p class="text-xs text-gray-500">
-							This is UI-only. Buttons/fields don’t authenticate yet.
-						</p>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-{/if}
-
-<style>
-	:global(body) {
-		margin: 0;
-		padding: 0;
-		background-color: #404b77;
-	}
-
-	@keyframes spin {
-		to {
-			transform: rotate(360deg);
-		}
-	}
-
-	:global(.animate-spin) {
-		animation: spin 1s linear infinite;
-	}
-</style>

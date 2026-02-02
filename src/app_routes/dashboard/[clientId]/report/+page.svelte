@@ -380,7 +380,7 @@
 		if (spec.kind === 'commentary') return spec;
 		const range = { start, end };
 
-		// kpi_split is a simple split; compare doesnâ€™t apply (yet).
+		// kpi_split is a simple split; compare doesn't apply (yet).
 		if (spec.kind === 'kpi_split') {
 			return { ...spec, range, compareMode: 'off', granularity };
 		}
@@ -612,7 +612,7 @@
 				</button>
 				<button
 					type="button"
-					class="rounded-lg bg-[#404b77] px-4 py-2 text-sm font-semibold text-white hover:bg-[#505c8f]"
+					class="rounded-lg bg-[var(--pi-primary)] px-4 py-2 text-sm font-semibold text-white hover:bg-[color-mix(in_oklch,var(--pi-primary)_92%,black)]"
 					on:click={() => openAdd('standard')}
 				>
 					Add card
@@ -628,74 +628,222 @@
 			</div>
 		</div>
 
-		<div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-5">
-			<div class="md:col-span-2">
-				<label class="mb-1 block text-xs font-semibold tracking-wide text-gray-500 uppercase">
-					Preset
-				</label>
-				<select
-					class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
-					bind:value={preset}
-					on:change={(e) => setPreset(e.currentTarget.value)}
-				>
-					<option value="last_28_days">Last 28 days</option>
-					<option value="last_month">Last month</option>
-					<option value="last_quarter">Last quarter</option>
-					<option value="last_6_months">Last 6 months</option>
-					<option value="last_12_months">Last 12 months</option>
-					<option value="last_16_months">Last 16 months</option>
-				</select>
-			</div>
+		<div class="mt-4 flex flex-wrap items-end gap-3">
+			<div class="flex flex-wrap items-end gap-3">
+				<div class="min-w-[210px]">
+					<label
+						class="mb-1 block text-[11px] font-semibold tracking-wide text-[var(--pi-muted)] uppercase"
+					>
+						Preset
+					</label>
+					<div class="relative">
+						<select
+							class="w-full appearance-none rounded-xl border border-[var(--pi-border)] bg-white px-3 py-2 pr-10 text-sm font-semibold text-gray-900 shadow-sm focus:border-transparent focus:ring-2 focus:ring-[var(--pi-focus)]"
+							bind:value={preset}
+							on:change={(e) => setPreset(e.currentTarget.value)}
+						>
+							<option value="last_28_days">Last 28 days</option>
+							<option value="last_month">Last month</option>
+							<option value="last_quarter">Last quarter</option>
+							<option value="last_6_months">Last 6 months</option>
+							<option value="last_12_months">Last 12 months</option>
+							<option value="last_16_months">Last 16 months</option>
+						</select>
+						<span
+							class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-[var(--pi-muted)]"
+						>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								viewBox="0 0 20 20"
+								fill="currentColor"
+								class="h-4 w-4"
+							>
+								<path
+									fill-rule="evenodd"
+									d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.24 4.5a.75.75 0 0 1-1.08 0l-4.24-4.5a.75.75 0 0 1 .02-1.06Z"
+									clip-rule="evenodd"
+								/>
+							</svg>
+						</span>
+					</div>
+				</div>
 
-			<div>
-				<label class="mb-1 block text-xs font-semibold tracking-wide text-gray-500 uppercase"
-					>Start</label
-				>
-				<input
-					type="date"
-					class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-					bind:value={start}
-				/>
-			</div>
+				<div>
+					<label
+						class="mb-1 block text-[11px] font-semibold tracking-wide text-[var(--pi-muted)] uppercase"
+					>
+						Start
+					</label>
+					<div class="relative">
+						<span
+							class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-[var(--pi-muted)]"
+						>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								class="h-4 w-4"
+							>
+								<path d="M8 2v4" />
+								<path d="M16 2v4" />
+								<path d="M3 10h18" />
+								<path d="M4 6h16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z" />
+							</svg>
+						</span>
+						<input
+							type="date"
+							class="w-[170px] rounded-xl border border-[var(--pi-border)] bg-white px-3 py-2 pl-9 text-sm font-semibold text-gray-900 shadow-sm focus:border-transparent focus:ring-2 focus:ring-[var(--pi-focus)]"
+							bind:value={start}
+						/>
+					</div>
+				</div>
 
-			<div>
-				<label class="mb-1 block text-xs font-semibold tracking-wide text-gray-500 uppercase"
-					>End</label
-				>
-				<input
-					type="date"
-					class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-					bind:value={end}
-				/>
+				<div>
+					<label
+						class="mb-1 block text-[11px] font-semibold tracking-wide text-[var(--pi-muted)] uppercase"
+					>
+						End
+					</label>
+					<div class="relative">
+						<span
+							class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-[var(--pi-muted)]"
+						>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								class="h-4 w-4"
+							>
+								<path d="M8 2v4" />
+								<path d="M16 2v4" />
+								<path d="M3 10h18" />
+								<path d="M4 6h16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z" />
+							</svg>
+						</span>
+						<input
+							type="date"
+							class="w-[170px] rounded-xl border border-[var(--pi-border)] bg-white px-3 py-2 pl-9 text-sm font-semibold text-gray-900 shadow-sm focus:border-transparent focus:ring-2 focus:ring-[var(--pi-focus)]"
+							bind:value={end}
+						/>
+					</div>
+				</div>
 			</div>
+			<div class="flex flex-wrap items-end gap-3 sm:ml-auto">
+				<div class="min-w-[190px]">
+					<label
+						class="mb-1 block text-[11px] font-semibold tracking-wide text-[var(--pi-muted)] uppercase"
+					>
+						Compare
+					</label>
+					<div
+						class="inline-flex w-full rounded-xl bg-[var(--pi-surface-2)] p-1 ring-1 ring-[var(--pi-border)]"
+					>
+						<button
+							type="button"
+							class="flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition-colors"
+							class:bg-white={compareMode === 'off'}
+							class:shadow-sm={compareMode === 'off'}
+							class:text-gray-900={compareMode === 'off'}
+							class:text-[var(--pi-muted)]={compareMode !== 'off'}
+							class:hover:text-gray-900={compareMode !== 'off'}
+							on:click={() => (compareMode = 'off')}
+						>
+							Off
+						</button>
+						<button
+							type="button"
+							class="flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition-colors"
+							class:bg-white={compareMode === 'mom'}
+							class:shadow-sm={compareMode === 'mom'}
+							class:text-gray-900={compareMode === 'mom'}
+							class:text-[var(--pi-muted)]={compareMode !== 'mom'}
+							class:hover:text-gray-900={compareMode !== 'mom'}
+							on:click={() => (compareMode = 'mom')}
+						>
+							MoM
+						</button>
+						<button
+							type="button"
+							class="flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition-colors"
+							class:bg-white={compareMode === 'yoy'}
+							class:shadow-sm={compareMode === 'yoy'}
+							class:text-gray-900={compareMode === 'yoy'}
+							class:text-[var(--pi-muted)]={compareMode !== 'yoy'}
+							class:hover:text-gray-900={compareMode !== 'yoy'}
+							on:click={() => (compareMode = 'yoy')}
+						>
+							YoY
+						</button>
+					</div>
+				</div>
 
-			<div>
-				<label class="mb-1 block text-xs font-semibold tracking-wide text-gray-500 uppercase"
-					>Compare</label
-				>
-				<select
-					class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
-					bind:value={compareMode}
-				>
-					<option value="off">Off</option>
-					<option value="mom">MoM</option>
-					<option value="yoy">YoY</option>
-				</select>
-			</div>
-
-			<div>
-				<label class="mb-1 block text-xs font-semibold tracking-wide text-gray-500 uppercase"
-					>Granularity</label
-				>
-				<select
-					class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
-					bind:value={granularity}
-				>
-					<option value="auto">Auto</option>
-					<option value="daily">Daily</option>
-					<option value="weekly">Weekly</option>
-					<option value="monthly">Monthly</option>
-				</select>
+				<div class="min-w-[260px]">
+					<label
+						class="mb-1 block text-[11px] font-semibold tracking-wide text-[var(--pi-muted)] uppercase"
+					>
+						Granularity
+					</label>
+					<div
+						class="inline-flex w-full rounded-xl bg-[var(--pi-surface-2)] p-1 ring-1 ring-[var(--pi-border)]"
+					>
+						<button
+							type="button"
+							class="flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition-colors"
+							class:bg-white={granularity === 'auto'}
+							class:shadow-sm={granularity === 'auto'}
+							class:text-gray-900={granularity === 'auto'}
+							class:text-[var(--pi-muted)]={granularity !== 'auto'}
+							class:hover:text-gray-900={granularity !== 'auto'}
+							on:click={() => (granularity = 'auto')}
+						>
+							Auto
+						</button>
+						<button
+							type="button"
+							class="flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition-colors"
+							class:bg-white={granularity === 'daily'}
+							class:shadow-sm={granularity === 'daily'}
+							class:text-gray-900={granularity === 'daily'}
+							class:text-[var(--pi-muted)]={granularity !== 'daily'}
+							class:hover:text-gray-900={granularity !== 'daily'}
+							on:click={() => (granularity = 'daily')}
+						>
+							Daily
+						</button>
+						<button
+							type="button"
+							class="flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition-colors"
+							class:bg-white={granularity === 'weekly'}
+							class:shadow-sm={granularity === 'weekly'}
+							class:text-gray-900={granularity === 'weekly'}
+							class:text-[var(--pi-muted)]={granularity !== 'weekly'}
+							class:hover:text-gray-900={granularity !== 'weekly'}
+							on:click={() => (granularity = 'weekly')}
+						>
+							Weekly
+						</button>
+						<button
+							type="button"
+							class="flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition-colors"
+							class:bg-white={granularity === 'monthly'}
+							class:shadow-sm={granularity === 'monthly'}
+							class:text-gray-900={granularity === 'monthly'}
+							class:text-[var(--pi-muted)]={granularity !== 'monthly'}
+							class:hover:text-gray-900={granularity !== 'monthly'}
+							on:click={() => (granularity = 'monthly')}
+						>
+							Monthly
+						</button>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -713,7 +861,7 @@
 					{@const isOn =
 						col >= resizeStartCol && col < resizeStartCol + Math.max(1, resizePreviewSpan || 1)}
 					<div
-						class={`rounded-lg border border-dashed ${isOn ? 'border-[#404b77]/70 bg-[#404b77]/[0.10]' : 'border-[#404b77]/50 bg-[#404b77]/[0.03]'}`}
+						class={`rounded-lg border border-dashed ${isOn ? 'border-[color-mix(in_oklch,var(--pi-primary)_60%,transparent)] bg-[color-mix(in_oklch,var(--pi-primary)_12%,transparent)]' : 'border-[color-mix(in_oklch,var(--pi-primary)_40%,transparent)] bg-[color-mix(in_oklch,var(--pi-primary)_6%,transparent)]'}`}
 					/>
 				{/each}
 			</div>
@@ -730,7 +878,7 @@
 						<div
 							class={`rounded-xl border border-dashed transition-colors ${
 								dropRow === row && dropCol === col
-									? 'border-[#404b77] bg-[#404b77]/[0.06]'
+									? 'border-[var(--pi-primary)] bg-[color-mix(in_oklch,var(--pi-primary)_10%,transparent)]'
 									: 'border-gray-400 bg-white'
 							}`}
 							style={`grid-column: ${col} / span 1; grid-row: ${row};`}
@@ -780,7 +928,7 @@
 				style={`grid-column: ${it.col || 1} / span ${it.span || 2}; grid-row: ${it.row || 1};`}
 			>
 				{#if it.spec?.kind === 'commentary'}
-					<DashboardCard title={it.spec?.title || 'Commentary'}>
+					<DashboardCard title={it.spec?.title || 'Commentary'} icon="file">
 						<svelte:fragment slot="actions">
 							{#if !preview}
 								<button
@@ -797,7 +945,7 @@
 							<div class="text-sm whitespace-pre-wrap text-gray-800">{it.spec?.text || ''}</div>
 						{:else}
 							<textarea
-								class="min-h-[180px] w-full resize-none rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 focus:border-transparent focus:ring-2 focus:ring-[#404b77]"
+								class="min-h-[180px] w-full resize-none rounded-lg border border-[var(--pi-border)] bg-white px-3 py-2 text-sm text-gray-800 focus:border-transparent focus:ring-2 focus:ring-[var(--pi-focus)]"
 								placeholder="Write commentary…"
 								value={it.spec?.text || ''}
 								on:input={(e) => updateCommentary(it.id, e.currentTarget.value)}
@@ -833,7 +981,7 @@
 							aria-label="Resize card"
 						>
 							<span
-								class="block h-2.5 w-2.5 cursor-ew-resize rounded-full bg-[#404b77] shadow-sm"
+								class="block h-2.5 w-2.5 cursor-ew-resize rounded-full bg-[var(--pi-primary)] shadow-sm"
 							/>
 						</button>
 					</div>
@@ -877,7 +1025,7 @@
 			<button
 				type="button"
 				class="rounded-lg px-3 py-2 text-sm font-semibold"
-				class:bg-[#404b77]={addTab === 'standard'}
+				class:bg-[var(--pi-primary)]={addTab === 'standard'}
 				class:text-white={addTab === 'standard'}
 				class:bg-gray-100={addTab !== 'standard'}
 				class:text-gray-700={addTab !== 'standard'}
@@ -888,7 +1036,7 @@
 			<button
 				type="button"
 				class="rounded-lg px-3 py-2 text-sm font-semibold"
-				class:bg-[#404b77]={addTab === 'custom'}
+				class:bg-[var(--pi-primary)]={addTab === 'custom'}
 				class:text-white={addTab === 'custom'}
 				class:bg-gray-100={addTab !== 'custom'}
 				class:text-gray-700={addTab !== 'custom'}
@@ -899,7 +1047,7 @@
 			<button
 				type="button"
 				class="rounded-lg px-3 py-2 text-sm font-semibold"
-				class:bg-[#404b77]={addTab === 'commentary'}
+				class:bg-[var(--pi-primary)]={addTab === 'commentary'}
 				class:text-white={addTab === 'commentary'}
 				class:bg-gray-100={addTab !== 'commentary'}
 				class:text-gray-700={addTab !== 'commentary'}

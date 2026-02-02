@@ -35,8 +35,7 @@
 		if (!raw) return [];
 
 		// Matches: currency, counts, decimals, percentages. Keeps the match for rendering.
-		const re =
-			/(£|\$|€)?\b\d{1,3}(?:,\d{3})*(?:\.\d+)?%?|\b\d+(?:\.\d+)?%?/g;
+		const re = /(£|\$|€)?\b\d{1,3}(?:,\d{3})*(?:\.\d+)?%?|\b\d+(?:\.\d+)?%?/g;
 
 		const parts = [];
 		let last = 0;
@@ -85,9 +84,9 @@
 <div class="relative">
 	<button
 		type="button"
-		class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-white p-1.5 text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900"
+		class="inline-flex items-center justify-center rounded-md border border-[var(--pi-border)] bg-white p-1.5 text-[var(--pi-muted)] transition-colors hover:bg-[var(--pi-surface-2)] hover:text-gray-900"
 		on:click={toggle}
-		disabled={disabled}
+		{disabled}
 		aria-label={`Ask AI about ${title || 'this card'}`}
 		aria-disabled={disabled}
 		class:opacity-50={disabled}
@@ -103,18 +102,21 @@
 			stroke-width="2"
 			stroke-linecap="round"
 			stroke-linejoin="round"
+			aria-hidden="true"
 		>
-			<path d="M12 8V4H8" />
-			<path d="M4 14a8 8 0 1 0 8-8" />
-			<path d="M12 12h4" />
-			<path d="M12 16h2" />
+			<path d="M12 2v2" />
+			<path d="M9 4h6" />
+			<rect x="5" y="6" width="14" height="14" rx="3" />
+			<path d="M9 11h.01" />
+			<path d="M15 11h.01" />
+			<path d="M9 15h6" />
 		</svg>
 	</button>
 
 	{#if open}
 		<div class="fixed inset-0 z-40" on:click={close} />
 		<div
-			class="absolute right-0 top-9 z-50 w-[520px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl"
+			class="absolute top-9 right-0 z-50 w-[520px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl"
 		>
 			<div class="flex items-center justify-between border-b border-gray-100 px-4 py-3">
 				<div class="min-w-0">
@@ -151,7 +153,7 @@
 						{#if msg.role === 'user'}
 							<div class="flex justify-end">
 								<div
-									class="max-w-[85%] rounded-2xl bg-[#404b77] px-3 py-2 text-sm text-white shadow-sm"
+									class="max-w-[85%] rounded-2xl bg-[var(--pi-primary)] px-3 py-2 text-sm text-white shadow-sm"
 								>
 									{msg.text}
 								</div>
@@ -165,13 +167,11 @@
 												Summary
 											</p>
 											<ul class="mt-1 list-disc space-y-1 pl-5">
-												{#each (msg.result?.summaryBullets || []) as b (b)}
+												{#each msg.result?.summaryBullets || [] as b (b)}
 													<li>
 														{#each splitForHighlight(b) as p (p.t)}
 															{#if p.n}
-																<span
-																	class="font-semibold text-[oklch(42.4%_0.199_265.638)]"
-																>
+																<span class="font-semibold text-[oklch(42.4%_0.199_265.638)]">
 																	{p.t}
 																</span>
 															{:else}
@@ -188,13 +188,11 @@
 												Key findings
 											</p>
 											<ul class="mt-1 list-disc space-y-1 pl-5">
-												{#each (msg.result?.keyFindings || []) as b (b)}
+												{#each msg.result?.keyFindings || [] as b (b)}
 													<li>
 														{#each splitForHighlight(b) as p (p.t)}
 															{#if p.n}
-																<span
-																	class="font-semibold text-[oklch(42.4%_0.199_265.638)]"
-																>
+																<span class="font-semibold text-[oklch(42.4%_0.199_265.638)]">
 																	{p.t}
 																</span>
 															{:else}
@@ -211,13 +209,11 @@
 												Next checks
 											</p>
 											<ul class="mt-1 list-disc space-y-1 pl-5">
-												{#each (msg.result?.nextChecks || []) as b (b)}
+												{#each msg.result?.nextChecks || [] as b (b)}
 													<li>
 														{#each splitForHighlight(b) as p (p.t)}
 															{#if p.n}
-																<span
-																	class="font-semibold text-[oklch(42.4%_0.199_265.638)]"
-																>
+																<span class="font-semibold text-[oklch(42.4%_0.199_265.638)]">
 																	{p.t}
 																</span>
 															{:else}
@@ -240,7 +236,7 @@
 
 					{#if loading}
 						<div class="flex justify-start">
-							<div class="rounded-2xl bg-gray-50 px-3 py-2 text-sm text-gray-700">Thinking…</div>
+							<div class="rounded-2xl bg-gray-50 px-3 py-2 text-sm text-gray-700">Thinkingâ€¦</div>
 						</div>
 					{/if}
 				</div>
@@ -253,13 +249,13 @@
 
 				<div class="mt-3 flex items-end gap-2">
 					<textarea
-						class="min-h-[48px] w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-[#404b77]"
+						class="min-h-[48px] w-full resize-none rounded-lg border border-[var(--pi-border)] px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-[var(--pi-focus)]"
 						placeholder="Ask a question about this card..."
 						bind:value={question}
 					/>
 					<button
 						type="button"
-						class="shrink-0 rounded-lg bg-[#404b77] px-4 py-2 text-sm font-semibold text-white hover:bg-[#505c8f] disabled:opacity-60"
+						class="shrink-0 rounded-lg bg-[var(--pi-primary)] px-4 py-2 text-sm font-semibold text-white hover:bg-[color-mix(in_oklch,var(--pi-primary)_92%,black)] disabled:opacity-60"
 						on:click={() => ask()}
 						disabled={loading || !String(question || '').trim()}
 					>
