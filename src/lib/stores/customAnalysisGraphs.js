@@ -1,7 +1,5 @@
 import { writable } from 'svelte/store';
 
-const STORAGE_KEY = 'intel_custom_graphs_v1';
-
 function safeParse(text) {
 	try {
 		return JSON.parse(text);
@@ -31,7 +29,7 @@ function normalizeClientGraphs(arr) {
 
 function loadInitial() {
 	if (typeof window === 'undefined') return {};
-	const raw = window.localStorage.getItem(STORAGE_KEY);
+	const raw = window.localStorage.getItem('intel_custom_graphs_v1');
 	const parsed = raw ? safeParse(raw) : null;
 	if (!parsed || typeof parsed !== 'object') return {};
 
@@ -47,38 +45,53 @@ function loadInitial() {
 /** @type {import('svelte/store').Writable<Record<string, any[]>>} */
 export const customGraphsByClient = writable(loadInitial());
 
-if (typeof window !== 'undefined') {
-	customGraphsByClient.subscribe((value) => {
-		try {
-			// Always persist in normalized shape.
-			const next = {};
-			for (const [clientId, arr] of Object.entries(value || {})) {
-				next[clientId] = normalizeClientGraphs(arr);
-			}
-			window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-		} catch {
-			// ignore storage quota / privacy errors
-		}
-	});
+export function setCustomGraphs(clientId, graphs) {
+	if (!clientId) return;
+	customGraphsByClient.update((m) => ({ ...m, [clientId]: normalizeClientGraphs(graphs) }));
 }
 
-export function addCustomGraph(clientId, graphSpec) {
-	if (!clientId) return;
-	customGraphsByClient.update((m) => {
-		const existing = normalizeClientGraphs(m[clientId]);
-		const item = { id: uid(), spec: graphSpec };
-		return { ...m, [clientId]: [...existing, item] };
-	});
+export async function loadCustomGraphs(clientId) {
+	if (!clientId || typeof fetch === 'undefined') return;
+	try {
+		const res = await fetch(`/api/clients/${clientId}/custom-graphs`);
+		const data = await res.json().catch(() => ({}));
+		if (!res.ok) return;
+		setCustomGraphs(clientId, data.items || []);
+	} catch {
+		// ignore network errors (mock/local fallback still shows existing state)
+	}
 }
 
-export function removeCustomGraph(clientId, indexOrId) {
-	if (!clientId) return;
+export async function addCustomGraph(clientId, graphSpec) {
+	if (!clientId || !graphSpec || typeof fetch === 'undefined') return;
+	try {
+		const res = await fetch(`/api/clients/${clientId}/custom-graphs`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ spec: graphSpec })
+		});
+		const data = await res.json().catch(() => ({}));
+		if (!res.ok) return;
+
+		customGraphsByClient.update((m) => {
+			const existing = normalizeClientGraphs(m[clientId]);
+			return { ...m, [clientId]: [...existing, { id: data.id, spec: data.spec }] };
+		});
+	} catch {
+		// ignore
+	}
+}
+
+export async function removeCustomGraph(clientId, id) {
+	if (!clientId || !id || typeof fetch === 'undefined') return;
+	try {
+		await fetch(`/api/clients/${clientId}/custom-graphs/${id}`, { method: 'DELETE' });
+	} catch {
+		// ignore
+	}
 	customGraphsByClient.update((m) => {
 		const existing = normalizeClientGraphs(m[clientId]);
-		const next =
-			typeof indexOrId === 'string'
-				? existing.filter((g) => g.id !== indexOrId)
-				: existing.filter((_, i) => i !== indexOrId);
+		const next = existing.filter((g) => g.id !== id);
 		return { ...m, [clientId]: next };
 	});
 }

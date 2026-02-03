@@ -1,11 +1,10 @@
 <script>
 	import { page } from '$app/stores';
-	import { MOCK_CLIENTS } from '$lib/mock/clients.js';
 
-	let { children } = $props();
+	let { children, data } = $props();
 
 	const clientId = $derived($page.params.clientId);
-	const client = $derived(MOCK_CLIENTS.find((c) => c.id === clientId) || null);
+	const client = $derived(data?.client || null);
 
 	const tabs = $derived([
 		{ name: 'Data', href: `/dashboard/${clientId}/data` },

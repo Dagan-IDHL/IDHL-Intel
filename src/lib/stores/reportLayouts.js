@@ -182,21 +182,77 @@ function loadInitial() {
 
 export const reportLayoutsByClient = writable(loadInitial());
 
+const hydratedClients = new Set();
+const skipSaveOnce = new Set();
+const saveTimers = new Map();
+const lastSaved = new Map();
+
+function serializeMeta(meta) {
+	return JSON.stringify({
+		title: String(meta?.title || 'Report').slice(0, 60),
+		items: normalizeItems(meta?.items || [])
+	});
+}
+
+async function saveToServer(clientId, meta) {
+	if (!clientId || typeof fetch === 'undefined') return;
+
+	const json = serializeMeta(meta);
+	if (lastSaved.get(clientId) === json) return;
+
+	try {
+		const payload = JSON.parse(json);
+		const res = await fetch(`/api/clients/${clientId}/report-layout`, {
+			method: 'PUT',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(payload)
+		});
+		if (res.ok) lastSaved.set(clientId, json);
+	} catch {
+		// ignore network errors
+	}
+}
+
+function scheduleSave(clientId, meta) {
+	if (!clientId || !hydratedClients.has(clientId)) return;
+	if (skipSaveOnce.has(clientId)) {
+		skipSaveOnce.delete(clientId);
+		lastSaved.set(clientId, serializeMeta(meta));
+		return;
+	}
+
+	const existing = saveTimers.get(clientId);
+	if (existing) clearTimeout(existing);
+	saveTimers.set(
+		clientId,
+		setTimeout(() => {
+			saveTimers.delete(clientId);
+			saveToServer(clientId, meta);
+		}, 650)
+	);
+}
+
 if (typeof window !== 'undefined') {
 	reportLayoutsByClient.subscribe((value) => {
-		try {
-			const next = {};
-			for (const [clientId, meta] of Object.entries(value || {})) {
-				next[clientId] = {
-					title: String(meta?.title || 'Report').slice(0, 60),
-					items: normalizeItems(meta?.items || [])
-				};
-			}
-			window.localStorage.setItem(STORAGE_KEY_V2, JSON.stringify(next));
-		} catch {
-			// ignore storage quota / privacy errors
+		for (const clientId of hydratedClients) {
+			const meta = value?.[clientId];
+			if (!meta) continue;
+			scheduleSave(clientId, meta);
 		}
 	});
+}
+
+export function hydrateReportLayout(clientId, meta) {
+	if (!clientId) return;
+	hydratedClients.add(clientId);
+	skipSaveOnce.add(clientId);
+	reportLayoutsByClient.update((m) => ({
+		...m,
+		[clientId]: {
+			title: String(meta?.title || 'Report').slice(0, 60),
+			items: normalizeItems(meta?.items || [])
+		}
+	}));
 }
 
 export function ensureReport(clientId) {

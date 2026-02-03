@@ -1,5 +1,5 @@
 <script>
-	import { MOCK_CLIENTS } from '$lib/mock/clients.js';
+	export let data;
 </script>
 
 <svelte:head>
@@ -10,7 +10,9 @@
 	<div class="flex flex-wrap items-end justify-between gap-3">
 		<div>
 			<h2 class="text-xl font-semibold text-gray-900">Clients</h2>
-			<p class="mt-1 text-sm text-[var(--pi-muted)]">Mock client list.</p>
+			<p class="mt-1 text-sm text-[var(--pi-muted)]">
+				{data?.error ? data.error : 'Your accessible clients.'}
+			</p>
 		</div>
 
 		<a
@@ -22,7 +24,7 @@
 	</div>
 
 	<div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-		{#each MOCK_CLIENTS as client (client.id)}
+		{#each data?.clients || [] as client (client.id)}
 			<a
 				href={`/dashboard/${client.id}/data`}
 				class="rounded-2xl border border-[var(--pi-border)] bg-white p-5 shadow-sm transition-colors hover:bg-[var(--pi-surface-2)]"

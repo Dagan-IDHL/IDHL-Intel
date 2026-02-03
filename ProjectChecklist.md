@@ -73,10 +73,10 @@ Use this checklist to track progress against the implementation plan in `Project
 
 ## Phase 7 — Persistence (PocketBase)
 
-- [ ] Save/load report layouts per client
-- [ ] Save/load custom graphs (`GraphSpec`) per client
-- [ ] Save user preferences (default comparison mode, presets)
-- [ ] Store connector config placeholders (GSC/GA4 property mapping)
+- [x] Save/load report layouts per client
+- [x] Save/load custom graphs (`GraphSpec`) per client
+- [x] Save user preferences (default comparison mode, presets)
+- [x] Store connector config placeholders (GSC/GA4 property mapping)
 
 ## Phase 8 — Real Integrations (GSC/GA4) — Live Query (Option A)
 

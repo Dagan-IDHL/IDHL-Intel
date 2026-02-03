@@ -1,3 +1,37 @@
+<script>
+	import { goto } from '$app/navigation';
+
+	let clientName = '';
+	let url = '';
+	let error = '';
+	let loading = false;
+
+	async function createClient() {
+		error = '';
+		loading = true;
+
+		try {
+			const res = await fetch('/api/clients', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ clientName, url })
+			});
+			const data = await res.json().catch(() => ({}));
+
+			if (!res.ok) {
+				error = data?.error || 'Failed to create client.';
+				loading = false;
+				return;
+			}
+
+			await goto(`/dashboard/${data.id}/data`);
+		} catch {
+			error = 'Failed to create client.';
+			loading = false;
+		}
+	}
+</script>
+
 <svelte:head>
 	<title>Pulse Insight — Create Client</title>
 </svelte:head>
@@ -28,11 +62,21 @@
 
 		<h1 class="mt-6 text-2xl font-bold tracking-tight text-gray-900">Create client</h1>
 		<p class="mt-2 text-sm text-[var(--pi-muted)]">
-			This is UI-only for now. Fields don’t create records yet.
+			Create a new client workspace. You’ll be taken straight to the dashboard.
 		</p>
 	</div>
 
-	<form class="rounded-2xl border border-[var(--pi-border)] bg-white p-6 shadow-sm md:p-8">
+	<form
+		class="rounded-2xl border border-[var(--pi-border)] bg-white p-6 shadow-sm md:p-8"
+		on:submit|preventDefault={createClient}
+	>
+		{#if error}
+			<div
+				class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700"
+			>
+				{error}
+			</div>
+		{/if}
 		<div class="mb-6">
 			<label for="clientName" class="mb-2 block text-sm font-semibold text-gray-900">
 				Client name
@@ -41,7 +85,9 @@
 				type="text"
 				id="clientName"
 				placeholder="e.g., Acme Corporation"
+				bind:value={clientName}
 				class="w-full rounded-xl border border-[var(--pi-border)] bg-white px-4 py-3 text-sm transition-all focus:border-transparent focus:ring-2 focus:ring-[var(--pi-focus)] focus:outline-none"
+				disabled={loading}
 			/>
 			<p class="mt-1 text-xs text-[var(--pi-muted)]">The name of your client or project.</p>
 		</div>
@@ -52,17 +98,20 @@
 				type="url"
 				id="url"
 				placeholder="e.g., https://example.com"
+				bind:value={url}
 				class="w-full rounded-xl border border-[var(--pi-border)] bg-white px-4 py-3 text-sm transition-all focus:border-transparent focus:ring-2 focus:ring-[var(--pi-focus)] focus:outline-none"
+				disabled={loading}
 			/>
 			<p class="mt-1 text-xs text-[var(--pi-muted)]">Used for icons and analytics context.</p>
 		</div>
 
 		<div class="flex gap-4">
 			<button
-				type="button"
-				class="flex-1 rounded-xl bg-[var(--pi-primary)] px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[color-mix(in_oklch,var(--pi-primary)_92%,black)]"
+				type="submit"
+				disabled={loading || !clientName || !url}
+				class="flex-1 rounded-xl bg-[var(--pi-primary)] px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[color-mix(in_oklch,var(--pi-primary)_92%,black)] disabled:cursor-not-allowed disabled:opacity-60"
 			>
-				Create client
+				{loading ? 'Creatingâ€¦' : 'Create client'}
 			</button>
 			<a
 				href="/dashboard/clients"

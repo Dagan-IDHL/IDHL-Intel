@@ -32,6 +32,33 @@
 	let compareMode = $state('mom');
 	let granularity = $state('auto');
 	let preset = $state('last_28_days');
+	let prefsSeeded = $state(false);
+	let prefsSaveTimer = null;
+
+	$effect(() => {
+		if (prefsSeeded) return;
+		const p = $page.data?.prefs || {};
+		if (typeof p?.preset === 'string') preset = p.preset;
+		if (typeof p?.compareMode === 'string') compareMode = p.compareMode;
+		if (typeof p?.granularity === 'string') granularity = p.granularity;
+		prefsSeeded = true;
+	});
+
+	$effect(() => {
+		if (!prefsSeeded) return;
+		if (prefsSaveTimer) clearTimeout(prefsSaveTimer);
+		prefsSaveTimer = setTimeout(async () => {
+			try {
+				await fetch('/api/me/preferences', {
+					method: 'PUT',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ prefs: { preset, compareMode, granularity } })
+				});
+			} catch {
+				// ignore
+			}
+		}, 900);
+	});
 
 	const cardMetrics = [
 		'sessions',

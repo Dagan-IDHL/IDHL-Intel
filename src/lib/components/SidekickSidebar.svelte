@@ -79,6 +79,16 @@
 	function closeDropdown() {
 		isDropdownOpen = false;
 	}
+
+	async function signOut(e) {
+		e?.preventDefault?.();
+		try {
+			await fetch('/api/auth/logout', { method: 'POST' });
+		} catch {
+			// ignore network errors; still redirect to login
+		}
+		window.location.href = '/login';
+	}
 </script>
 
 <svelte:window on:click={closeDropdown} />
@@ -203,6 +213,7 @@
 								<a
 									href="/login"
 									class="block w-full px-4 py-3 text-left text-sm font-semibold text-red-600 transition-colors hover:bg-red-50"
+									on:click={signOut}
 								>
 									Sign out
 								</a>

@@ -2,10 +2,25 @@
 	import { page } from '$app/stores';
 	import CardGrid from '$lib/components/ui/CardGrid.svelte';
 	import GraphFromSpec from '$lib/components/ai/GraphFromSpec.svelte';
-	import { customGraphsByClient, removeCustomGraph } from '$lib/stores/customAnalysisGraphs.js';
+	import {
+		customGraphsByClient,
+		loadCustomGraphs,
+		removeCustomGraph,
+		setCustomGraphs
+	} from '$lib/stores/customAnalysisGraphs.js';
 
 	const clientId = $derived($page.params.clientId);
 	let graphs = $state([]);
+	let seededFor = $state('');
+
+	$effect(() => {
+		const id = clientId;
+		if (!id) return;
+		if (seededFor === id) return;
+		setCustomGraphs(id, $page.data?.customGraphs || []);
+		seededFor = id;
+		loadCustomGraphs(id);
+	});
 
 	$effect(() => {
 		const id = clientId;

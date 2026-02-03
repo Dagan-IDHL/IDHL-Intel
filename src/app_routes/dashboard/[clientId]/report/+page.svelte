@@ -8,11 +8,16 @@
 		todayIsoUtc
 	} from '$lib/analytics/date.js';
 	import GraphFromSpec from '$lib/components/ai/GraphFromSpec.svelte';
-	import { customGraphsByClient } from '$lib/stores/customAnalysisGraphs.js';
+	import {
+		customGraphsByClient,
+		loadCustomGraphs,
+		setCustomGraphs
+	} from '$lib/stores/customAnalysisGraphs.js';
 	import {
 		addReportItemAt,
 		addReportItem,
 		ensureReport,
+		hydrateReportLayout,
 		removeReportItem,
 		placeReportItem,
 		reportLayoutsByClient,
@@ -30,6 +35,7 @@
 	let reportTitle = $state('Report');
 	let items = $state([]);
 	let customGraphs = $state([]);
+	let seededFor = $state('');
 
 	// Report-wide filters (applied to all cards for now).
 	let preset = $state('last_28_days');
@@ -549,6 +555,13 @@
 		ensureReport(clientId);
 
 		const id = clientId;
+		if (seededFor !== id) {
+			hydrateReportLayout(id, $page.data?.reportLayout || { title: 'Report', items: [] });
+			setCustomGraphs(id, $page.data?.customGraphs || []);
+			seededFor = id;
+			loadCustomGraphs(id);
+		}
+
 		const unsubReport = reportLayoutsByClient.subscribe((m) => {
 			const meta = m?.[id] || { title: 'Report', items: [] };
 			reportTitle = meta.title || 'Report';

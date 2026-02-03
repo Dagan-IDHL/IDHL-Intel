@@ -7,15 +7,11 @@
 	let password = '';
 	let error = '';
 	let loading = false;
-	let showLegacyLogin = false;
+	let showLegacyLogin = true;
 
 	onMount(() => {
 		const errorParam = $page.url.searchParams.get('error');
 		if (errorParam) error = errorParam;
-
-		// Hide email/password by default, but keep the legacy login flow available.
-		// Enable by visiting /login?legacy=1 (and always toggleable in dev).
-		showLegacyLogin = $page.url.searchParams.get('legacy') === '1';
 	});
 
 	async function handleLogin() {
@@ -192,16 +188,6 @@
 							Continue with Microsoft
 						{/if}
 					</a>
-
-					{#if import.meta.env.DEV && !showLegacyLogin}
-						<button
-							type="button"
-							class="w-full text-xs font-semibold text-[var(--pi-primary)] hover:underline"
-							on:click={() => (showLegacyLogin = true)}
-						>
-							Use legacy email/password login
-						</button>
-					{/if}
 				</div>
 
 				{#if showLegacyLogin}
