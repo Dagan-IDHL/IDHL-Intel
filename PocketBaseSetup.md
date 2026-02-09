@@ -53,9 +53,9 @@ Recommended shape stored in `prefs`:
 
 ```json
 {
-  "preset": "last_28_days",
-  "compareMode": "mom",
-  "granularity": "auto"
+	"preset": "last_28_days",
+	"compareMode": "mom",
+	"granularity": "auto"
 }
 ```
 
@@ -67,6 +67,66 @@ Used as a placeholder for Phase 8/9 (OAuth + mapping).
 - `provider` (select or text, required; e.g. `ga4`, `gsc`)
 - `status` (select or text, optional; e.g. `disconnected`, `connected`, `error`)
 - `config` (json, optional)
+
+## Keyword tracking (Phase 10+)
+
+Not required for the current mock UI (the keywords page uses `localStorage` for now), but these are the PocketBase collections to support real keyword tracking later.
+
+### 7) `keyword_groups`
+
+- `client` (relation, required; relates to `clients`)
+- `name` (text, required)
+- `sortOrder` (number, optional)
+- `createdBy` (relation, optional; relates to `users`)
+
+### 8) `keywords`
+
+- `client` (relation, required; relates to `clients`)
+- `group` (relation, optional; relates to `keyword_groups`)
+- `keyword` (text, required)
+- `isActive` (bool, optional; default: `true`)
+- `volume` (number, optional)
+- `targetUrl` (url or text, optional)
+- `createdBy` (relation, optional; relates to `users`)
+
+### 9) `keyword_rankings`
+
+Stores one record per keyword per day (or per fetch run, if you prefer).
+
+- `client` (relation, required; relates to `clients`)
+- `keyword` (relation, required; relates to `keywords`)
+- `date` (date, required)
+- `position` (number, optional; null = unranked/unknown)
+- `searchEngine` (select or text, optional; e.g. `google`)
+- `market` (select or text, optional; e.g. `uk`, `us`)
+- `device` (select or text, optional; e.g. `desktop`, `mobile`)
+- `serpFeatures` (json, optional)
+- `landingUrl` (url or text, optional)
+
+## Suggested API rules for keyword tracking
+
+Use the same access pattern as other client-scoped collections (user must be linked to the client).
+
+### `keyword_groups`
+
+- **List / View / Update / Delete rule**
+  - `@request.auth.id != "" && client.users.id ?= @request.auth.id`
+- **Create rule**
+  - `@request.auth.id != "" && client.users.id ?= @request.auth.id`
+
+### `keywords`
+
+- **List / View / Update / Delete rule**
+  - `@request.auth.id != "" && client.users.id ?= @request.auth.id`
+- **Create rule**
+  - `@request.auth.id != "" && client.users.id ?= @request.auth.id`
+
+### `keyword_rankings`
+
+- **List / View / Update / Delete rule**
+  - `@request.auth.id != "" && client.users.id ?= @request.auth.id`
+- **Create rule**
+  - `@request.auth.id != "" && client.users.id ?= @request.auth.id`
 
 ## Suggested API rules (minimum viable)
 
@@ -122,4 +182,3 @@ These rules keep users limited to records linked to their PocketBase auth id.
 - `PUT /api/me/preferences`
 - `GET /api/clients/:clientId/connectors`
 - `PUT /api/clients/:clientId/connectors`
-

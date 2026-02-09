@@ -37,6 +37,12 @@
 			? [
 					{ name: 'Data', href: `/dashboard/${clientId}/data`, icon: 'dashboard', match: 'prefix' },
 					{
+						name: 'Organic',
+						href: `/dashboard/${clientId}/organic/keywords`,
+						icon: 'chart',
+						match: 'prefix'
+					},
+					{
 						name: 'Analysis',
 						href: `/dashboard/${clientId}/custom-analysis`,
 						icon: 'sparkles',

@@ -14,7 +14,8 @@
 
 	function set() {
 		if (!chart) return;
-		chart.setOption(option, { notMerge: true, lazyUpdate: true });
+		chart.setOption(option, { notMerge: true });
+		chart.resize();
 	}
 
 	onMount(() => {
@@ -47,7 +48,7 @@
 		echarts = null;
 	});
 
-	$: set();
+	$: option, set();
 </script>
 
 <div bind:this={el} style={`height:${height}px; width: 100%;`} />

@@ -8,6 +8,7 @@
 		todayIsoUtc
 	} from '$lib/analytics/date.js';
 	import GraphFromSpec from '$lib/components/ai/GraphFromSpec.svelte';
+	import KeywordTrackingReportCard from '$lib/components/report/KeywordTrackingReportCard.svelte';
 	import {
 		customGraphsByClient,
 		loadCustomGraphs,
@@ -46,10 +47,15 @@
 
 	let preview = $state(false);
 	let addOpen = $state(false);
-	let addTab = $state('standard'); // 'standard' | 'custom' | 'commentary'
+	let addTab = $state('standard'); // 'standard' | 'custom' | 'keywords' | 'commentary'
 	let addTargetRow = $state(0);
 	let addTargetCol = $state(0);
 	let addTargetSpan = $state(2);
+	let aiOpen = $state(false);
+	let aiPrompt = $state('Make me a report to show organic performance');
+	let aiReplace = $state(false);
+	let aiRunning = $state(false);
+	let aiError = $state('');
 
 	let dragId = $state('');
 	let dropRow = $state(0);
@@ -274,6 +280,46 @@
 		}
 	];
 
+	const KEYWORD_CARDS = [
+		{
+			title: 'Average Keyword Position',
+			description: 'Average position over time (mock ranks for now).',
+			span: 4,
+			spec: {
+				version: 1,
+				kind: 'keyword_tracking',
+				variant: 'avg_position',
+				title: 'Average Keyword Position',
+				groupId: 'all'
+			}
+		},
+		{
+			title: 'Keyword Visibility',
+			description: 'Sistrix-style visibility index over time.',
+			span: 4,
+			spec: {
+				version: 1,
+				kind: 'keyword_tracking',
+				variant: 'visibility',
+				title: 'Keyword Visibility',
+				groupId: 'all'
+			}
+		},
+		{
+			title: 'Keyword List',
+			description: 'A table of tracked keywords (latest position + volume).',
+			span: 4,
+			spec: {
+				version: 1,
+				kind: 'keyword_tracking',
+				variant: 'list',
+				title: 'Keyword List',
+				groupId: 'all',
+				limit: 25
+			}
+		}
+	];
+
 	const COMMENTARY_CARD = {
 		version: 1,
 		kind: 'commentary',
@@ -409,12 +455,73 @@
 		addTargetCol = 0;
 		addTargetSpan = 2;
 	}
+ 
+	function openAi() {
+		aiError = '';
+		aiOpen = true;
+	}
+ 
+	function closeAi() {
+		if (aiRunning) return;
+		aiOpen = false;
+		aiError = '';
+	}
+ 
+	async function generateReportWithAI() {
+		aiError = '';
+		const prompt = String(aiPrompt || '').trim();
+		if (!prompt) {
+			aiError = 'Add a prompt.';
+			return;
+		}
+		if (!clientId) return;
+ 
+		aiRunning = true;
+		try {
+			const res = await fetch('/api/ai/report', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ prompt })
+			});
+			const data = await res.json().catch(() => null);
+			if (!res.ok) {
+				aiError = String(data?.error || 'AI report generation failed.');
+				return;
+			}
+ 
+			const title = String(data?.title || 'Report').slice(0, 60);
+			const cards = Array.isArray(data?.cards) ? data.cards : [];
+			if (!cards.length) {
+				aiError = 'AI returned no cards.';
+				return;
+			}
+ 
+			if (aiReplace) {
+				hydrateReportLayout(clientId, { title, items: [] });
+			}
+			setReportTitle(clientId, title);
+			reportTitle = title;
+ 
+			for (const c of cards) {
+				const span = Math.max(1, Math.min(4, Math.round(Number(c?.span) || 2)));
+				const spec = c?.spec || null;
+				if (!spec || typeof spec !== 'object') continue;
+				addReportItem(clientId, spec, span);
+			}
+ 
+			aiOpen = false;
+		} catch (e) {
+			aiError = String(e?.message || 'AI report generation failed.');
+		} finally {
+			aiRunning = false;
+		}
+	}
 
-	function addStandardCard(spec) {
+	function addStandardCard(spec, spanOverride = 2) {
 		if (addTargetRow && addTargetCol) {
 			addReportItemAt(clientId, spec, addTargetSpan, addTargetRow, addTargetCol);
 		} else {
-			addReportItem(clientId, spec);
+			addReportItem(clientId, spec, spanOverride);
 		}
 		closeAdd();
 	}
@@ -424,6 +531,15 @@
 			addReportItemAt(clientId, spec, addTargetSpan, addTargetRow, addTargetCol);
 		} else {
 			addReportItem(clientId, spec);
+		}
+		closeAdd();
+	}
+
+	function addKeywordCard(spec, spanOverride = 4) {
+		if (addTargetRow && addTargetCol) {
+			addReportItemAt(clientId, spec, addTargetSpan, addTargetRow, addTargetCol);
+		} else {
+			addReportItem(clientId, spec, spanOverride);
 		}
 		closeAdd();
 	}
@@ -629,6 +745,13 @@
 					on:click={() => openAdd('standard')}
 				>
 					Add card
+				</button>
+				<button
+					type="button"
+					class="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+					on:click={openAi}
+				>
+					AI build
 				</button>
 				<button
 					type="button"
@@ -965,6 +1088,29 @@
 							/>
 						{/if}
 					</DashboardCard>
+				{:else if it.spec?.kind === 'keyword_tracking'}
+					<KeywordTrackingReportCard
+						{clientId}
+						itemId={it.id}
+						spec={it.spec}
+						{start}
+						{end}
+						{granularity}
+						{compareMode}
+						{preview}
+					>
+						<svelte:fragment slot="actions">
+							{#if !preview}
+								<button
+									type="button"
+									class="rounded-md border border-gray-200 bg-white px-2 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+									on:click={() => removeReportItem(clientId, it.id)}
+								>
+									Remove
+								</button>
+							{/if}
+						</svelte:fragment>
+					</KeywordTrackingReportCard>
 				{:else}
 					<GraphFromSpec {clientId} spec={withReportFilters(it.spec)}>
 						<svelte:fragment slot="actions">
@@ -1060,6 +1206,17 @@
 			<button
 				type="button"
 				class="rounded-lg px-3 py-2 text-sm font-semibold"
+				class:bg-[var(--pi-primary)]={addTab === 'keywords'}
+				class:text-white={addTab === 'keywords'}
+				class:bg-gray-100={addTab !== 'keywords'}
+				class:text-gray-700={addTab !== 'keywords'}
+				on:click={() => (addTab = 'keywords')}
+			>
+				Keywords
+			</button>
+			<button
+				type="button"
+				class="rounded-lg px-3 py-2 text-sm font-semibold"
 				class:bg-[var(--pi-primary)]={addTab === 'commentary'}
 				class:text-white={addTab === 'commentary'}
 				class:bg-gray-100={addTab !== 'commentary'}
@@ -1077,7 +1234,7 @@
 						<button
 							type="button"
 							class="cursor-pointer rounded-xl border border-gray-200 bg-white p-4 text-left hover:bg-gray-50"
-							on:click={() => addStandardCard(c.spec)}
+							on:click={() => addStandardCard(c.spec, c.span)}
 						>
 							<div class="text-sm font-semibold text-gray-900">{c.title}</div>
 							<div class="mt-1 text-xs text-gray-600">Add to report</div>
@@ -1108,6 +1265,19 @@
 						{/each}
 					</div>
 				{/if}
+			{:else if addTab === 'keywords'}
+				<div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+					{#each KEYWORD_CARDS as c (c.title)}
+						<button
+							type="button"
+							class="cursor-pointer rounded-xl border border-gray-200 bg-white p-4 text-left hover:bg-gray-50"
+							on:click={() => addKeywordCard(c.spec, c.span)}
+						>
+							<div class="text-sm font-semibold text-gray-900">{c.title}</div>
+							<div class="mt-1 text-xs text-gray-600">{c.description}</div>
+						</button>
+					{/each}
+				</div>
 			{:else}
 				<div class="grid grid-cols-1 gap-3 md:grid-cols-2">
 					<button
@@ -1120,6 +1290,70 @@
 					</button>
 				</div>
 			{/if}
+		</div>
+	</section>
+{/if}
+
+{#if aiOpen && !preview}
+	<div class="fixed inset-0 z-40" on:click={closeAi} />
+	<section
+		class="fixed top-1/2 left-1/2 z-50 w-[780px] max-w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl"
+		on:click|stopPropagation={() => {}}
+	>
+		<header class="flex items-center justify-between border-b border-gray-100 px-5 py-4">
+			<div class="min-w-0">
+				<div class="text-sm font-semibold text-gray-900">AI report builder</div>
+				<div class="text-xs text-gray-500">Describe what you want and AI will add cards to this report.</div>
+			</div>
+			<button
+				type="button"
+				class="rounded-md p-1 text-gray-500 hover:bg-gray-100"
+				on:click={closeAi}
+				disabled={aiRunning}
+			>
+				×
+			</button>
+		</header>
+
+		<div class="space-y-4 p-5">
+			<div>
+				<label class="mb-1 block text-[11px] font-semibold tracking-wide text-[var(--pi-muted)] uppercase">
+					Prompt
+				</label>
+				<textarea
+					class="min-h-[120px] w-full resize-none rounded-xl border border-[var(--pi-border)] bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-transparent focus:ring-2 focus:ring-[var(--pi-focus)]"
+					bind:value={aiPrompt}
+				/>
+				{#if aiError}
+					<div class="mt-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+						{aiError}
+					</div>
+				{/if}
+			</div>
+
+			<label class="flex items-center gap-2 text-sm text-gray-700">
+				<input type="checkbox" bind:checked={aiReplace} />
+				Replace current report layout
+			</label>
+
+			<div class="flex items-center justify-end gap-2">
+				<button
+					type="button"
+					class="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+					on:click={closeAi}
+					disabled={aiRunning}
+				>
+					Cancel
+				</button>
+				<button
+					type="button"
+					class="rounded-lg bg-[var(--pi-primary)] px-4 py-2 text-sm font-semibold text-white hover:bg-[color-mix(in_oklch,var(--pi-primary)_92%,black)] disabled:opacity-60"
+					on:click={generateReportWithAI}
+					disabled={aiRunning}
+				>
+					{aiRunning ? 'Generating…' : 'Generate'}
+				</button>
+			</div>
 		</div>
 	</section>
 {/if}

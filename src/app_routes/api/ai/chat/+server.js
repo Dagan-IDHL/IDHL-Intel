@@ -20,6 +20,34 @@ function asStringArray(value, limit = 6) {
 		.slice(0, limit);
 }
 
+function mergeWrappedClarifyQuestions(list) {
+	const items = Array.isArray(list) ? [...list] : [];
+	const out = [];
+
+	for (let i = 0; i < items.length; i += 1) {
+		const cur = String(items[i] || '').trim();
+		if (!cur) continue;
+
+		const hasOpen = cur.includes('[');
+		const hasClose = cur.includes(']');
+		const openUnclosed = hasOpen && !hasClose;
+
+		if (openUnclosed && i + 1 < items.length) {
+			const next = String(items[i + 1] || '').trim();
+			// If the next chunk looks like it's continuing the options, merge it in.
+			if (next && (!next.includes('[') || next.includes('|') || next.includes(']'))) {
+				out.push(`${cur} ${next}`.replace(/\s+/g, ' ').trim());
+				i += 1;
+				continue;
+			}
+		}
+
+		out.push(cur);
+	}
+
+	return out;
+}
+
 function normalizeMetricMention(text) {
 	const t = String(text || '').toLowerCase();
 	/** @type {string[]} */
@@ -297,7 +325,9 @@ export async function POST({ request, fetch }) {
 	return json({
 		mode: String(parsed.mode || 'answer'),
 		answer: String(parsed.answer || ''),
-		clarifyingQuestions: asStringArray(parsed.clarifyingQuestions, 2),
+		clarifyingQuestions: mergeWrappedClarifyQuestions(
+			asStringArray(parsed.clarifyingQuestions, 4)
+		).slice(0, 2),
 		graphSpec
 	});
 }

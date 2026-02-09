@@ -12,6 +12,8 @@
 	/** @type {{ id: string, role: 'user'|'assistant', content: string, mode?: string, graphSpec?: any, clarifyingQuestions?: string[] }[]} */
 	let thread = [];
 	let addedByMessageId = {};
+	let clarifyDraftByMessageId = {};
+	let clarifySentByMessageId = {};
 
 	function uid() {
 		return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -99,11 +101,88 @@
 		return { question, options };
 	}
 
-	function answerClarify(question, option) {
+	function isMultiSelectQuestion(question, options) {
+		const q = String(question || '').toLowerCase();
+		const opts = (options || []).map((o) => String(o || '').toLowerCase());
+		if (q.includes('metric') || q.includes('metrics')) return true;
+		if (q.includes('include') || q.includes('included')) return true;
+		if (q.includes('which cards') || q.includes('card types')) return true;
+		if (opts.some((o) => o.includes('all of the above'))) return true;
+		return false;
+	}
+
+	function setClarifyAnswer(messageId, question, option, options = []) {
+		const msgId = String(messageId || '').trim();
 		const q = String(question || '').trim();
 		const a = String(option || '').trim();
-		if (!a) return;
-		send(q ? `For "${q}": ${a}` : a);
+		if (!msgId || !q || !a) return;
+		if (clarifySentByMessageId[msgId]) return;
+		const current = clarifyDraftByMessageId[msgId] || {};
+		const existing = current[q];
+
+		const multi = isMultiSelectQuestion(q, options);
+		if (!multi) {
+			clarifyDraftByMessageId = { ...clarifyDraftByMessageId, [msgId]: { ...current, [q]: a } };
+			return;
+		}
+
+		const prev = Array.isArray(existing) ? existing : existing ? [String(existing)] : [];
+		if (a.toLowerCase().includes('all of the above')) {
+			clarifyDraftByMessageId = { ...clarifyDraftByMessageId, [msgId]: { ...current, [q]: [a] } };
+			return;
+		}
+
+		const hasAll = prev.some((v) => String(v).toLowerCase().includes('all of the above'));
+		const base = hasAll ? [] : prev;
+		const next = base.includes(a) ? base.filter((v) => v !== a) : [...base, a];
+		clarifyDraftByMessageId = { ...clarifyDraftByMessageId, [msgId]: { ...current, [q]: next } };
+	}
+
+	function answeredCountForMessage(msgId, parsed) {
+		const answers = clarifyDraftByMessageId[msgId] || {};
+		return (parsed || []).filter((p) => {
+			const q = p?.question;
+			if (!q) return false;
+			const v = answers[q];
+			if (Array.isArray(v)) return v.length > 0;
+			return Boolean(v);
+		}).length;
+	}
+
+	function buildClarifyMessage(parsed, answers) {
+		const lines = [];
+		for (const p of parsed || []) {
+			const q = String(p?.question || '').trim();
+			if (!q) continue;
+			const v = answers?.[q];
+			if (Array.isArray(v)) {
+				const picked = v.map((x) => String(x || '').trim()).filter(Boolean);
+				if (!picked.length) continue;
+				lines.push(`- ${q}: ${picked.join(', ')}`);
+				continue;
+			}
+			const a = String(v || '').trim();
+			if (!a) continue;
+			lines.push(`- ${q}: ${a}`);
+		}
+		if (!lines.length) return '';
+		return [
+			'Clarification answers:',
+			...lines,
+			'If anything else is unclear, choose sensible defaults and proceed without asking more questions.'
+		].join('\n');
+	}
+
+	function sendClarifyAnswers(msg) {
+		const msgId = String(msg?.id || '').trim();
+		if (!msgId) return;
+		if (clarifySentByMessageId[msgId]) return;
+		const parsed = (msg?.clarifyingQuestions || []).map(parseClarify).filter((p) => p?.question);
+		const answers = clarifyDraftByMessageId[msgId] || {};
+		const text = buildClarifyMessage(parsed, answers);
+		if (!text) return;
+		clarifySentByMessageId = { ...clarifySentByMessageId, [msgId]: true };
+		send(text);
 	}
 
 	function addGraph(spec) {
@@ -196,19 +275,44 @@
 								<div class="whitespace-pre-wrap">{msg.content}</div>
 
 								{#if msg.mode === 'clarify' && msg.clarifyingQuestions?.length}
+									{@const parsedAll = (msg.clarifyingQuestions || [])
+										.map(parseClarify)
+										.filter((p) => p?.question)}
+									{@const answers = clarifyDraftByMessageId[msg.id] || {}}
+									{@const answered = answeredCountForMessage(msg.id, parsedAll)}
+
 									<div class="mt-3 space-y-2">
 										<div class="text-xs font-semibold text-gray-600">Clarify:</div>
-										{#each msg.clarifyingQuestions as raw (raw)}
-											{@const parsed = parseClarify(raw)}
+
+										{#each parsedAll as parsed (parsed.question)}
+											{@const multi = isMultiSelectQuestion(parsed.question, parsed.options)}
 											<div class="rounded-xl border border-gray-200 bg-white p-3">
-												<div class="text-sm font-semibold text-gray-900">{parsed.question}</div>
+												<div class="flex items-baseline justify-between gap-3">
+													<div class="text-sm font-semibold text-gray-900">{parsed.question}</div>
+													{#if multi}
+														<div class="text-[11px] font-semibold text-gray-500">Select one or more</div>
+													{/if}
+												</div>
 												{#if parsed.options.length}
 													<div class="mt-2 flex flex-wrap gap-2">
 														{#each parsed.options as opt (opt)}
+															{@const selected = (() => {
+																const v = answers?.[parsed.question];
+																if (Array.isArray(v)) return v.includes(opt);
+																return v === opt;
+															})()}
 															<button
 																type="button"
-																class="rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-100"
-																on:click={() => answerClarify(parsed.question, opt)}
+																class="rounded-full border px-3 py-1 text-xs font-semibold transition-colors"
+																class:border-[var(--pi-primary)]={selected}
+																class:bg-[var(--pi-primary)]={selected}
+																class:text-white={selected}
+																class:border-gray-200={!selected}
+																class:bg-gray-50={!selected}
+																class:text-gray-700={!selected}
+																class:hover:bg-[color-mix(in_oklch,var(--pi-primary)_10%,white)]={!selected}
+																on:click={() =>
+																	setClarifyAnswer(msg.id, parsed.question, opt, parsed.options)}
 															>
 																{opt}
 															</button>
@@ -221,6 +325,20 @@
 												{/if}
 											</div>
 										{/each}
+
+										<div class="flex items-center justify-between gap-3 pt-1">
+											<div class="text-xs text-gray-600">
+												Answered {answered} of {parsedAll.length}
+											</div>
+											<button
+												type="button"
+												class="rounded-lg bg-[var(--pi-primary)] px-3 py-2 text-xs font-semibold text-white hover:bg-[color-mix(in_oklch,var(--pi-primary)_92%,black)] disabled:opacity-60"
+												on:click={() => sendClarifyAnswers(msg)}
+												disabled={loading || answered === 0 || clarifySentByMessageId[msg.id]}
+											>
+												{clarifySentByMessageId[msg.id] ? 'Sent' : 'Continue'}
+											</button>
+										</div>
 									</div>
 								{/if}
 
